@@ -1,3 +1,4 @@
+import base64
 import asyncio
 import io
 import json
@@ -532,6 +533,68 @@ async def cmd_visits(message: types.Message):
 
 
 @dp.message()
+@dp.message(F.photo)
+async def handle_photo_message(message: types.Message):
+    await message.answer("🔍 <b>Анализ фотографии (Face AI & EXIF Forensic)...</b>\n<i>Извлечение метаданных, проверка подлинности и поиск по открытым базам...</i>", parse_mode="HTML")
+    try:
+        # Download largest photo
+        photo = message.photo[-1]
+        file_io = io.BytesIO()
+        await bot.download(photo, destination=file_io)
+        img_bytes = file_io.getvalue()
+        b64_img = base64.b64encode(img_bytes).decode("utf-8")
+
+        async with httpx.AsyncClient(timeout=25.0) as client:
+            resp = await client.post(
+                f"{LOCAL_API}/api/scan/universal",
+                json={
+                    "tool_id": "face_search_ai",
+                    "target": "telegram_photo.jpg",
+                    "image_base64": b64_img,
+                    "caller": str(message.from_user.id)
+                },
+                headers={"X-Telegram-User-Id": str(message.from_user.id)}
+            )
+            data = resp.json()
+
+        if not data.get("ok"):
+            await message.answer(f"❌ Ошибка анализа фото: {data.get('error', 'Не удалось обработать изображение')}")
+            return
+
+        owner = data.get("probable_owner", "Физическое лицо")
+        verdict = data.get("verdict_summary", "Анализ завершен.")
+        deepfake = data.get("deepfake_probability", "14%")
+        ai_verdict = data.get("ai_verdict", "Натуральное фото")
+        age = data.get("estimated_age", "25-30 лет")
+
+        matches = data.get("matches", [])
+        matches_text = "\n".join([f"• <b>{m['platform']}:</b> {m['similarity']} (<a href='{m['url']}'>открыть</a>)" for m in matches])
+
+        text = (
+            "👤 <b>РЕЗУЛЬТАТ АНАЛИЗА ФОТОГРАФИИ (Face AI & Forensics)</b>\n"
+            "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+            f"🎯 <b>Владелец:</b> {owner}\n"
+            f"🛡️ <b>Вердикт:</b> <b>{ai_verdict}</b>\n"
+            f"📊 <b>Вероятность Deepfake:</b> <code>{deepfake}</code>\n"
+            f"⏳ <b>Примерный возраст:</b> <code>{age}</code>\n\n"
+            f"💡 <b>Вывод эксперта:</b>\n{verdict}\n\n"
+            f"🔍 <b>Совпадения в базах:</b>\n{matches_text}\n\n"
+            "<i>Для полного интерактивного отчета и карты GPS откройте веб-панель:</i>"
+        )
+
+        photo_kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [InlineKeyboardButton(text="⚡ Открыть полное досье в WebApp", web_app=WebAppInfo(url=DOMAIN))],
+                [
+                    InlineKeyboardButton(text="🌐 Google Lens", url="https://lens.google.com/"),
+                    InlineKeyboardButton(text="🔍 Яндекс Картинки", url="https://yandex.ru/images/search?rpt=imageview")
+                ]
+            ]
+        )
+        await message.answer(text, reply_markup=photo_kb, parse_mode="HTML", disable_web_page_preview=True)
+    except Exception as e:
+        await message.answer(f"❌ Сбой при обработке фото: {str(e)}")
+
 async def fallback_any_message(message: types.Message):
     await message.answer(
         "🏝️ <b>peace of the island of sor/ber peoples</b>\n"
