@@ -3290,7 +3290,7 @@ async def core_scan_breach_audit(identifier: str, caller_user: str = "guest") ->
         "leaks_count": len(leaks_found),
         "leaks": leaks_found,
         "remediation_checklist": checklist,
-        "raw_cli_output": f"root@cyberhub:~# scan executed against {clean_name if 'clean_name' in locals() else target}\n[+] Analysis complete."
+        "raw_cli_output": f"root@cyberhub:~# scan executed against {identifier}\n[+] Analysis complete."
     }
 
 
@@ -3387,7 +3387,7 @@ async def scan_face_search_endpoint(request: Request):
 async def scan_breach_audit_endpoint(request: Request):
     try: body = await request.json()
     except Exception: body = {}
-    identifier = str(body.get("identifier", "")).strip()
+    identifier = str(body.get("identifier") or body.get("target") or body.get("email") or body.get("phone") or "").strip()
     caller = str(body.get("caller", "guest")).strip()
     res = await core_scan_breach_audit(identifier, caller)
     if not res.get("ok"): return JSONResponse(res, status_code=400)
@@ -3413,6 +3413,22 @@ def core_tool_decoder(action: str, text: str) -> dict:
     text = text.strip()
     if not text:
         return {"ok": False, "error": "Введите текст или хеш для анализа"}
+
+    if not action or action == "auto":
+        parts = text.split(".")
+        if len(parts) in (2, 3) and parts[0].startswith("ey"):
+            action = "jwt_decode"
+        elif len(text) >= 4 and len(text) % 4 == 0 and re.match(r"^[A-Za-z0-9+/=]+$", text):
+            try:
+                dec = base64.b64decode(text).decode("utf-8")
+                if dec and all(c.isprintable() or c in "\n\r\t" for c in dec):
+                    action = "base64_decode"
+                else:
+                    action = "hash_id"
+            except Exception:
+                action = "hash_id"
+        else:
+            action = "hash_id"
 
     if action == "hash_id":
         clean_h = text.lower().strip()
@@ -3501,7 +3517,7 @@ async def tools_decode_endpoint(request: Request):
     except Exception:
         body = {}
     action = str(body.get("action", "")).strip()
-    data = str(body.get("data", "")).strip()
+    data = str(body.get("data") or body.get("target") or body.get("text") or body.get("input") or "").strip()
     res = core_tool_decoder(action, data)
     if not res.get("ok"):
         return JSONResponse(res, status_code=400)

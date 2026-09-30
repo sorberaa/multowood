@@ -222,16 +222,18 @@ async def cmd_dossier(message: types.Message):
 
         scam = data.get("scam_score", 15)
         badge = "🟢 Высокая подлинность" if scam < 30 else ("🟡 Требует проверки" if scam < 60 else "🔴 Высокий риск / Фейк")
-        report = data.get("dossier_text", "Досье сформировано.")
+        import html
+        safe_target = html.escape(target)
+        safe_report = html.escape(report[:3500])
 
         text = (
-            f"🧠 <b>AI DETECTIVE DOSSIER // {target}</b>\n"
+            f"🧠 <b>AI DETECTIVE DOSSIER // {safe_target}</b>\n"
             f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
             f"🛡️ <b>Scam/Catfish Score:</b> <code>{scam}%</code> ({badge})\n"
             f"🌐 <b>Обнаружено платформ:</b> <code>{data.get('profiles_count', 0)}</code>\n\n"
-            f"{report[:3600]}"
+            f"{safe_report}"
         )
-        await status_msg.edit_text(text, reply_markup=get_webapp_keyboard(), parse_mode="Markdown")
+        await status_msg.edit_text(text, reply_markup=get_webapp_keyboard(), parse_mode="HTML")
     except Exception as e:
         await status_msg.edit_text(f"❌ Ошибка соединения: {str(e)}")
 
@@ -532,7 +534,6 @@ async def cmd_visits(message: types.Message):
         await message.answer(f"❌ Ошибка: {str(e)}")
 
 
-@dp.message()
 @dp.message(F.photo)
 async def handle_photo_message(message: types.Message):
     await message.answer("🔍 <b>Анализ фотографии (Face AI & EXIF Forensic)...</b>\n<i>Извлечение метаданных, проверка подлинности и поиск по открытым базам...</i>", parse_mode="HTML")
@@ -595,6 +596,8 @@ async def handle_photo_message(message: types.Message):
     except Exception as e:
         await message.answer(f"❌ Сбой при обработке фото: {str(e)}")
 
+
+@dp.message()
 async def fallback_any_message(message: types.Message):
     await message.answer(
         "🏝️ <b>peace of the island of sor/ber peoples</b>\n"
