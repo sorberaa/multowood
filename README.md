@@ -120,7 +120,7 @@ CF_TUNNEL_TOKEN=ey...
 
 ```
 osint-bot/
-├── Dockerfile              # Python 3.11
+├── Dockerfile              # Python 3.12
 ├── docker-compose.yml      # Bot + Cloudflare Tunnel
 ├── entrypoint.sh          # Запуск приложения
 ├── requirements.txt       # Python зависимости
