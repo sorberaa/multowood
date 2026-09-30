@@ -275,8 +275,8 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12
       <!-- Quick Launchpad -->
       <div class="quick-launch-grid">
         <div class="quick-chip" onclick="quickFillAndScan('ai_detective_profiler')">
-          <i class="fa-solid fa-brain quick-chip-icon" style="color:var(--primary);"></i>
-          <span class="quick-chip-text">AI Досье</span>
+          <i class="fa-solid fa-crosshairs quick-chip-icon" style="color:var(--primary);"></i>
+          <span class="quick-chip-text">Deep Recon</span>
         </div>
         <div class="quick-chip" onclick="quickFillAndScan('crypto_aml_auditor')">
           <i class="fa-solid fa-shield-halved quick-chip-icon" style="color:var(--green);"></i>
@@ -284,7 +284,7 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12
         </div>
         <div class="quick-chip" onclick="quickFillAndScan('face_search_ai')">
           <i class="fa-solid fa-user-astronaut quick-chip-icon" style="color:var(--cyan);"></i>
-          <span class="quick-chip-text">Face AI</span>
+          <span class="quick-chip-text">Поиск по фото</span>
         </div>
         <div class="quick-chip" onclick="quickFillAndScan('tg_activity_tracker')">
           <i class="fa-solid fa-clock quick-chip-icon" style="color:var(--amber);"></i>
