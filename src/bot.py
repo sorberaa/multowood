@@ -50,10 +50,18 @@ def is_admin(user_id: int) -> bool:
     return str(user_id) == str(ADMIN_CHAT_ID)
 
 
+WEBAPP_VERSION = "2.2"
+
+
+def get_webapp_url() -> str:
+    sep = "&" if "?" in DOMAIN else "?"
+    return f"{DOMAIN}{sep}v={WEBAPP_VERSION}"
+
+
 def get_webapp_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="⚡ Открыть OSINT Панель", web_app=WebAppInfo(url=DOMAIN))],
+            [InlineKeyboardButton(text="⚡ Открыть OSINT Панель", web_app=WebAppInfo(url=get_webapp_url()))],
             [InlineKeyboardButton(text="⭐️ Купить запросы (Stars)", callback_data="open_buy_menu")]
         ]
     )
@@ -65,7 +73,7 @@ def get_buy_keyboard() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🌟 20 запросов — 35 ⭐️", callback_data="buy_pkg_20")],
             [InlineKeyboardButton(text="🌟 50 запросов — 88 ⭐️", callback_data="buy_pkg_50")],
             [InlineKeyboardButton(text="🌟 100 запросов — 235 ⭐️", callback_data="buy_pkg_100")],
-            [InlineKeyboardButton(text="⚡ Открыть OSINT Панель", web_app=WebAppInfo(url=DOMAIN))]
+            [InlineKeyboardButton(text="⚡ Открыть OSINT Панель", web_app=WebAppInfo(url=get_webapp_url()))]
         ]
     )
 
@@ -151,7 +159,7 @@ async def execute_and_send_terminal(
                 kb = InlineKeyboardMarkup(
                     inline_keyboard=[
                         [InlineKeyboardButton(text="⭐️ Пополнить баланс запросов", callback_data="open_buy_menu")],
-                        [InlineKeyboardButton(text="⚡ Открыть WebApp", web_app=WebAppInfo(url=DOMAIN))]
+                        [InlineKeyboardButton(text="⚡ Открыть WebApp", web_app=WebAppInfo(url=get_webapp_url()))]
                     ]
                 )
                 await status_msg.edit_text(f"⚠️ <b>{err_msg}</b>", reply_markup=kb, parse_mode="HTML")
@@ -166,7 +174,7 @@ async def execute_and_send_terminal(
         text = format_terminal_box(tool_title, cli_cmd, raw_cli)
 
         buttons = [
-            [InlineKeyboardButton(text="⚡ Открыть результат в WebApp", web_app=WebAppInfo(url=DOMAIN))]
+            [InlineKeyboardButton(text="⚡ Открыть результат в WebApp", web_app=WebAppInfo(url=get_webapp_url()))]
         ]
         if data.get("google_maps_url"):
             buttons.append([InlineKeyboardButton(text="📍 Открыть координаты на карте", url=data["google_maps_url"])])
@@ -516,7 +524,7 @@ async def handle_photo_message(message: types.Message):
         text = format_terminal_box("EXIF Tool Forensic Extraction", "exiftool -G target_image.jpg", raw_cli)
 
         buttons = [
-            [InlineKeyboardButton(text="⚡ Открыть карту и детали в WebApp", web_app=WebAppInfo(url=DOMAIN))],
+            [InlineKeyboardButton(text="⚡ Открыть карту и детали в WebApp", web_app=WebAppInfo(url=get_webapp_url()))],
             [
                 InlineKeyboardButton(text="🌐 Google Lens", url="https://lens.google.com/"),
                 InlineKeyboardButton(text="🔍 Яндекс Картинки", url="https://yandex.ru/images/search?rpt=imageview")

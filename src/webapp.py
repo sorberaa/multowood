@@ -4117,15 +4117,29 @@ HTML_CONTENT = Path(__file__).resolve().parent.parent / "index.html"
 @app.get("/", response_class=HTMLResponse)
 async def root():
     if HTML_CONTENT.exists():
-        return HTML_CONTENT.read_text(encoding="utf-8")
-    return "<h1>peace of the island of sor/ber peoples Active</h1>"
+        return HTMLResponse(
+            content=HTML_CONTENT.read_text(encoding="utf-8"),
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
+        )
+    return HTMLResponse("<h1>peace of the island of sor/ber peoples Active</h1>")
 
 
 @app.get("/lab", response_class=HTMLResponse)
 async def lab():
     if HTML_CONTENT.exists():
-        return HTML_CONTENT.read_text(encoding="utf-8")
-    return "<h1>peace of the island of sor/ber peoples Active</h1>"
+        return HTMLResponse(
+            content=HTML_CONTENT.read_text(encoding="utf-8"),
+            headers={
+                "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
+                "Pragma": "no-cache",
+                "Expires": "0",
+            },
+        )
+    return HTMLResponse("<h1>peace of the island of sor/ber peoples Active</h1>")
 
 
 if __name__ == "__main__":
