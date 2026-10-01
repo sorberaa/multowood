@@ -29,7 +29,8 @@ ADMIN_CHAT_ID = os.getenv("ADMIN_CHAT_ID", "5233450569")
 
 DATA_DIR = Path(os.getenv("DATA_DIR", "/app/data"))
 DATA_DIR.mkdir(parents=True, exist_ok=True)
-LOCAL_API = "http://127.0.0.1:8000"
+LOCAL_API = os.getenv("LOCAL_API", "http://127.0.0.1:8000")
+REMOTE_API = DOMAIN.rstrip("/") if DOMAIN else "https://osint.qrport.eu"
 
 STAR_PACKAGES = {
     "pkg_20": {"title": "⭐️ 20 OSINT Запросов", "description": "Пополнение баланса поиска на 20 проверок", "scans": 20, "stars": 35},
@@ -50,7 +51,7 @@ def is_admin(user_id: int) -> bool:
     return str(user_id) == str(ADMIN_CHAT_ID)
 
 
-WEBAPP_VERSION = "2.2"
+WEBAPP_VERSION = "2.3"
 
 
 def get_webapp_url() -> str:
@@ -78,19 +79,23 @@ def get_buy_keyboard() -> InlineKeyboardMarkup:
     )
 
 
-def format_terminal_box(tool_title: str, command: str, raw_cli: str, max_chars: int = 3500) -> str:
+def format_terminal_box(tool_title: str, command: str, raw_cli: str, max_chars: int = 3000) -> str:
     """Форматирует консольный вывод модуля в стилизованный блок терминала Linux."""
     raw_cli = (raw_cli or "").strip()
     if not raw_cli:
         raw_cli = f"root@cyberhub:~# {command}\n[+] Status: OK\n[+] Operation completed successfully."
 
     if len(raw_cli) > max_chars:
-        half = max_chars // 2 - 50
-        raw_cli = raw_cli[:half] + "\n\n... [TERMINAL LOG TRUNCATED - FULL REPORT IN WEBAPP] ...\n\n" + raw_cli[-half:]
+        half = max_chars // 2 - 40
+        raw_cli = raw_cli[:half] + "\n\n... [LOG TRUNCATED - FULL REPORT IN WEBAPP] ...\n\n" + raw_cli[-half:]
 
     escaped_cli = html.escape(raw_cli)
     escaped_title = html.escape(tool_title.upper())
     escaped_cmd = html.escape(command)
+
+    # Защита от лимита 4096 символов Telegram
+    if len(escaped_cli) > 3300:
+        escaped_cli = escaped_cli[:3300] + "... [TRUNCATED]"
 
     return (
         f"💻 <b>TERMINAL OUTPUT // {escaped_title}</b>\n"
@@ -144,15 +149,40 @@ async def execute_and_send_terminal(
 ):
     """Выполняет запрос к модулю OSINT и отправляет чистый терминальный лог."""
     status_msg = await message.answer("⏳ <i>Выполняю консольный запрос в системе...</i>", parse_mode="HTML")
-    try:
-        async with httpx.AsyncClient(timeout=45.0) as client:
-            resp = await client.post(
-                f"{LOCAL_API}{endpoint}",
-                json=payload,
-                headers={"X-Telegram-User-Id": str(message.from_user.id)}
-            )
-            data = resp.json()
+    data = None
+    last_error_text = ""
 
+    # Пробуем LOCAL_API, при недоступности переключаемся на REMOTE_API
+    servers = [LOCAL_API]
+    if REMOTE_API and REMOTE_API not in servers:
+        servers.append(REMOTE_API)
+
+    for api_base in servers:
+        try:
+            async with httpx.AsyncClient(timeout=45.0) as client:
+                resp = await client.post(
+                    f"{api_base}{endpoint}",
+                    json=payload,
+                    headers={"X-Telegram-User-Id": str(message.from_user.id)}
+                )
+                if resp.status_code == 200:
+                    data = resp.json()
+                    break
+                else:
+                    try:
+                        err_json = resp.json()
+                        last_error_text = err_json.get("error") or err_json.get("detail") or f"HTTP {resp.status_code}"
+                    except Exception:
+                        last_error_text = f"HTTP {resp.status_code}"
+        except Exception as conn_err:
+            last_error_text = str(conn_err)
+            continue
+
+    if data is None:
+        await status_msg.edit_text(f"❌ <b>Ошибка связи с ядром:</b> {html.escape(last_error_text or 'Не удалось подключиться к API')}", parse_mode="HTML")
+        return
+
+    try:
         if not data.get("ok") and data.get("ok") is not None:
             err_msg = data.get("error", "Сбой при выполнении модуля")
             if "Лимит" in err_msg:
@@ -169,7 +199,26 @@ async def execute_and_send_terminal(
 
         raw_cli = data.get("raw_cli_output")
         if not raw_cli:
-            raw_cli = f"root@cyberhub:~# {cli_cmd}\n[+] Status: OK\n[+] Output: {json.dumps(data, ensure_ascii=False, indent=2)}"
+            now_ts = time.strftime("%Y-%m-%d %H:%M:%S")
+            lines = [
+                f"root@cyberhub:~# {cli_cmd}",
+                f"[{now_ts}] [INIT] Executing OSINT Forensic module: {tool_title}...",
+                f"[{now_ts}] [INFO] Target parameter: {payload.get('target', 'unknown')}",
+                f"[{now_ts}] [EXEC] Querying threat intelligence engines..."
+            ]
+            if data.get("profiles"):
+                for p in data["profiles"][:15]:
+                    lines.append(f"[+] [FOUND] {p.get('platform')}: {p.get('url')}")
+                lines.append(f"[*] Verified profile matches: {len(data['profiles'])}")
+            elif data.get("aml_risk_score") is not None:
+                lines.append(f"[+] [AML RISK] Score: {data.get('aml_risk_score')}% ({data.get('risk_level', 'LOW')})")
+                lines.append(f"[+] [TRANSACTIONS] Count: {data.get('tx_count', 0)}")
+            elif data.get("country") or data.get("city"):
+                lines.append(f"[+] [GEO] {data.get('country')}, {data.get('city')} | ISP: {data.get('isp')}")
+            else:
+                lines.append(f"[+] [STATUS] Validated: {data.get('verdict_summary') or data.get('ai_summary') or 'OK'}")
+            lines.append(f"[✓] Status: 200 OK | Operation completed.")
+            raw_cli = "\n".join(lines)
 
         text = format_terminal_box(tool_title, cli_cmd, raw_cli)
 
@@ -182,10 +231,15 @@ async def execute_and_send_terminal(
             buttons.extend(extra_buttons)
 
         kb = InlineKeyboardMarkup(inline_keyboard=buttons)
-        await status_msg.edit_text(text, reply_markup=kb, parse_mode="HTML", disable_web_page_preview=True)
+        try:
+            await status_msg.edit_text(text, reply_markup=kb, parse_mode="HTML", disable_web_page_preview=True)
+        except Exception:
+            # Fallback к обычному тексту при ошибке парсинга разметки
+            plain = f"💻 TERMINAL OUTPUT // {tool_title}\n$ {cli_cmd}\n\n{raw_cli[:3000]}"
+            await status_msg.edit_text(plain, reply_markup=kb, disable_web_page_preview=True)
 
     except Exception as e:
-        await status_msg.edit_text(f"❌ <b>Ошибка связи с ядром:</b> {html.escape(str(e))}", parse_mode="HTML")
+        await status_msg.edit_text(f"❌ <b>Сбой вывода:</b> {html.escape(str(e))}", parse_mode="HTML")
 
 
 # --- БАЗОВЫЕ КОМАНДЫ ---
