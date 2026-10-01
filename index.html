@@ -1842,6 +1842,11 @@ let currentUploadedFileName = '';
 let currentActiveResult = null; // Last scan result for saving
 let currentFolderId = 'all';
 
+// API Base: If opened as local file (file:///), send requests to live backend
+const API_BASE = (window.location.protocol === 'file:' || window.location.hostname === '')
+  ? 'https://osint.qrport.eu'
+  : '';
+
 // Default Folders
 const DEFAULT_FOLDERS = [
   { id: 'all', name: 'Все расследования', icon: 'fa-folder-open', isSystem: true },
@@ -2047,7 +2052,7 @@ async function executeDirectScan(toolId, target) {
       caller: currentSessionUser
     };
 
-    const res = await fetch('/api/scan/universal', {
+    const res = await fetch(API_BASE + '/api/scan/universal', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2566,7 +2571,7 @@ async function runGraphDirectScan() {
 
   const container = document.getElementById('visNetworkCanvas');
   try {
-    const res = await fetch('/api/scan/universal', {
+    const res = await fetch(API_BASE + '/api/scan/universal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Telegram-User-Id': tgUserId || '5233450569' },
       body: JSON.stringify({ tool_id: 'autorecon', target: target, caller: currentSessionUser })
@@ -2626,7 +2631,7 @@ async function runDecoderAction(action) {
   if (!data) return alert('Введите данные для обработки');
 
   try {
-    const res = await fetch('/api/tools/decode', {
+    const res = await fetch(API_BASE + '/api/tools/decode', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: action, data: data })
@@ -2651,7 +2656,7 @@ async function initUserProfile() {
         currentSessionUser = tu.username || String(tu.id);
       }
     }
-    const r = await fetch(`/api/auth/me?caller=${encodeURIComponent(currentSessionUser)}&tg_id=${encodeURIComponent(tgUserId)}`);
+    const r = await fetch(`${API_BASE}/api/auth/me?caller=${encodeURIComponent(currentSessionUser)}&tg_id=${encodeURIComponent(tgUserId)}`);
     const data = await r.json();
     if (data.ok && data.user) {
       const u = data.user;
@@ -2672,7 +2677,7 @@ async function initUserProfile() {
 function handleUserBadgeClick() {
   const role = prompt('Вход для администратора (введите пароль):');
   if (!role) return;
-  fetch('/api/auth/login', {
+  fetch(API_BASE + '/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: 'admin', password: role })
@@ -2706,7 +2711,7 @@ async function buyStarsPkg(pkgKey) {
 
 async function loadAdminUsers() {
   try {
-    const r = await fetch('/api/admin/users', { headers: { 'X-Telegram-User-Id': tgUserId || '5233450569' } });
+    const r = await fetch(API_BASE + '/api/admin/users', { headers: { 'X-Telegram-User-Id': tgUserId || '5233450569' } });
     const js = await r.json();
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = '';
@@ -2727,7 +2732,7 @@ async function loadAdminUsers() {
 
 async function loadAdminVisitors() {
   try {
-    const r = await fetch('/api/admin/visitors');
+    const r = await fetch(API_BASE + '/api/admin/visitors');
     const js = await r.json();
     const tbody = document.getElementById('visitorsTableBody');
     tbody.innerHTML = '';
@@ -2755,7 +2760,7 @@ async function submitCreateUser() {
   const r = document.getElementById('newRole').value;
   const p = document.getElementById('newPassword').value.trim();
   if (!u) return alert('Введите никнейм');
-  await fetch('/api/admin/users/create', {
+  await fetch(API_BASE + '/api/admin/users/create', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username: u, notes: n, role: r, password: p })
@@ -2770,7 +2775,7 @@ function setAdminQuota(username) {
   if (amount === null) return;
   const isVip = amount.toLowerCase().trim() === 'vip';
   const val = isVip ? 999999 : parseInt(amount, 10);
-  fetch('/api/admin/user/set-quota', {
+  fetch(API_BASE + '/api/admin/user/set-quota', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ target_user: username, balance: val, is_unlimited: isVip })
