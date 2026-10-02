@@ -28,7 +28,7 @@ if [ -f config/.env ]; then
     echo "2. Остановить"
     echo "3. Логи"
     echo "4. Перенастроить"
-    echo "5. Пересобрать"
+    echo "5. Обновить из Git и пересобрать"
     echo "6. Статус"
     echo ""
     read -p "Выбор (1-6): " choice
@@ -68,14 +68,18 @@ EOF
         echo "[+] Сохранено config/.env"
         read -p "Запустить сейчас? (y/n): " run
         if [ "$run" = "y" ]; then
-            $DC up -d --build
+            $DC up -d --build --force-recreate
             echo "[+] Запущено!"
         fi
         ;;
     5)
         mkdir -p data
-        $DC up -d --build
-        echo "[+] Готово."
+        if command -v git &> /dev/null && [ -d .git ]; then
+            echo "[*] Подтягивание обновлений из GitHub..."
+            git pull origin main 2>/dev/null || git pull
+        fi
+        $DC up -d --build --force-recreate
+        echo "[+] Готово! Код и контейнеры обновлены."
         ;;
     6)
         $DC ps
