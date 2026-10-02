@@ -11,6 +11,7 @@ services:
       - ./config:/app/config:ro
       - ./data:/app/data
       - ./index.html:/app/index.html:ro
+      - ./src:/app/src:ro
     networks:
       - osint-net
     ports:

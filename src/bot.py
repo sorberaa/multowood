@@ -17,8 +17,12 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     LabeledPrice,
     WebAppInfo,
+    FSInputFile,
+    BufferedInputFile,
 )
 from dotenv import load_dotenv
+from multitool import MediaDownloader, TempMailService, DevSecurityTools, AIProductivity
+
 
 load_dotenv("/app/config/.env")
 load_dotenv("config/.env")
@@ -62,8 +66,12 @@ def get_webapp_url() -> str:
 def get_webapp_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text="⚡ Открыть OSINT Панель", web_app=WebAppInfo(url=get_webapp_url()))],
-            [InlineKeyboardButton(text="⭐️ Купить запросы (Stars)", callback_data="open_buy_menu")]
+            [InlineKeyboardButton(text="⚡ Открыть Мультитул Панель", web_app=WebAppInfo(url=get_webapp_url()))],
+            [
+                InlineKeyboardButton(text="📬 Временная почта", callback_data="multitool_mail"),
+                InlineKeyboardButton(text="🎲 Новый пароль", callback_data="pwd_regen:16"),
+            ],
+            [InlineKeyboardButton(text="⭐️ Пополнить баланс (Stars)", callback_data="open_buy_menu")]
         ]
     )
 
@@ -74,7 +82,7 @@ def get_buy_keyboard() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🌟 20 запросов — 35 ⭐️", callback_data="buy_pkg_20")],
             [InlineKeyboardButton(text="🌟 50 запросов — 88 ⭐️", callback_data="buy_pkg_50")],
             [InlineKeyboardButton(text="🌟 100 запросов — 235 ⭐️", callback_data="buy_pkg_100")],
-            [InlineKeyboardButton(text="⚡ Открыть OSINT Панель", web_app=WebAppInfo(url=get_webapp_url()))]
+            [InlineKeyboardButton(text="⚡ Открыть Мультитул Панель", web_app=WebAppInfo(url=get_webapp_url()))]
         ]
     )
 
@@ -252,29 +260,32 @@ async def cmd_start(message: types.Message):
         admin_text = "\n\n👑 <b>Административный доступ:</b>\n<code>/users</code> — база | <code>/setscans</code> — квота | <code>/grantvip</code> — безлимит | <code>/visits</code> — визиты"
 
     text = (
-        "🛡️ <b>ISLAND INTELLIGENCE // OSINT FORENSIC TERMINAL</b>\n"
-        "<code>SYSTEM_STATUS: ONLINE [v3.0_CLI_CORE]</code>\n"
+        "⚡ <b>CYBER MULTITOOL // ВСЕ-В-ОДНОМ</b>\n"
+        "<code>SYSTEM_STATUS: ONLINE [MULTITOOL_PRO_v3.0]</code>\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
-        "Консольный комплекс глубокой сетевой разведки, анализа цифрового следа и деанонимизации открытых источников.\n\n"
-        "🚀 <b>ПРЯМОЙ КОНСОЛЬНЫЙ ВВОД:</b>\n"
-        "Просто <b>отправьте цель сообщением в чат</b> (ник, номер телефона, почту, IP, домен, адрес кошелька или фото) — бот автоматически распознает тип и выведет консольный терминальный лог!\n\n"
-        "⌨️ <b>КОМАНДЫ ТЕРМИНАЛА:</b>\n"
-        "├ <code>/scan &lt;цель&gt;</code> — Экспресс-сканирование (автоопределение типа)\n"
-        "├ <code>/user &lt;ник&gt;</code> — Поиск профилей цели по 480+ базам (Sherlock)\n"
-        "├ <code>/phone &lt;номер&gt;</code> — Телеком-разведка оператора и мессенджеров (PhoneInfoga)\n"
-        "├ <code>/email &lt;почта&gt;</code> — Анализ привязок аккаунтов по почте (Holehe)\n"
-        "├ <code>/ip &lt;ip_адрес&gt;</code> — Геолокация, провайдер и ASN-маршрутизация\n"
-        "├ <code>/domain &lt;домен&gt;</code> — DNS, SSL, заголовки и субдомены\n"
-        "├ <code>/aml &lt;кошелек&gt;</code> — Проверка крипты на санкции, миксеры и риски\n"
-        "├ <code>/tg &lt;юзернейм&gt;</code> — Датацентр, ID и телеметрия Telegram-аккаунта\n"
-        "├ <code>/audit &lt;цель&gt;</code> — Проверка утечек баз данных и паролей\n"
-        "├ <code>/spy &lt;юзернейм&gt;</code> — Анализ онлайна, фаз сна и скрытых связей\n"
-        "└ <code>/recon &lt;цель&gt;</code> — Сквозной сбор и построение графа связей\n\n"
-        f"🔐 <b>ИДЕНТИФИКАТОР:</b> <code>{message.from_user.id}</code>\n"
-        "🎁 <b>КВОТА:</b> <code>5 бесплатных проверок</code>\n"
-        "⭐️ <b>ПОПОЛНЕНИЕ:</b> <code>/buy</code> (Telegram Stars)\n"
+        "Универсальный швейцарский нож: глубокая OSINT-разведка, скачивание медиа без водяных знаков, временная почта, AI-инструменты и безопасность.\n\n"
+        "🚀 <b>УМНЫЙ АВТОВВОД (OMNIBOX):</b>\n"
+        "• Отправьте <b>ссылку TikTok / Reels / Shorts</b> — бот скачает чистое видео без водяных знаков.\n"
+        "• Отправьте <b>цель для пробива</b> (номер, ник, почту, IP, домен, кошелек, фото) — терминальный отчет OSINT.\n"
+        "• Отправьте <b>ссылку на статью</b> — мгновенная выжимка главных тезисов.\n\n"
+        "🛠 <b>ИНСТРУМЕНТЫ МУЛЬТИТУЛА:</b>\n"
+        "├ <code>/dl &lt;ссылка&gt;</code> — Скачать видео (TikTok, Instagram, YouTube, X, Pinterest)\n"
+        "├ <code>/mail</code> — Получить временную одноразовую почту\n"
+        "├ <code>/pass [длина]</code> — Сгенерировать защищенный пароль\n"
+        "├ <code>/web &lt;домен&gt;</code> — Проверить статус сайта и срок SSL\n"
+        "├ <code>/qr &lt;текст&gt;</code> — Сгенерировать QR-код\n"
+        "└ <code>/summary &lt;ссылка&gt;</code> — Выжимка статьи (AI TL;DR)\n\n"
+        "🕵️‍♂️ <b>OSINT РАЗВЕДКА:</b>\n"
+        "├ <code>/scan &lt;цель&gt;</code> — Экспресс-сканирование\n"
+        "├ <code>/user &lt;ник&gt;</code> — Поиск по 480+ соцсетям (Sherlock)\n"
+        "├ <code>/phone &lt;номер&gt;</code> — Телеком-разведка оператора (PhoneInfoga)\n"
+        "├ <code>/email &lt;почта&gt;</code> — Проверка привязок аккаунтов (Holehe)\n"
+        "├ <code>/ip &lt;ip&gt;</code> | <code>/domain &lt;домен&gt;</code> — Гео и DNS инфо\n"
+        "└ <code>/aml &lt;кошелек&gt;</code> — Аудит рисков криптовалюты\n\n"
+        f"🔐 <b>ВАШ ID:</b> <code>{message.from_user.id}</code>\n"
+        "⭐️ <b>ПОПОЛНЕНИЕ КВОТЫ:</b> <code>/buy</code>\n"
         "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
-        "⚡ <i>Запустите графическую веб-панель нажатием кнопки ниже:</i>"
+        "⚡ <i>Запустите графическую панель нажатием кнопки ниже:</i>"
         f"{admin_text}"
     )
     await message.answer(text, reply_markup=get_webapp_keyboard(), parse_mode="HTML")
@@ -594,6 +605,314 @@ async def handle_photo_message(message: types.Message):
         await status_msg.edit_text(f"❌ <b>Сбой при обработке фото:</b> {html.escape(str(e))}", parse_mode="HTML")
 
 
+# --- МУЛЬТИТУЛ: СКАЧИВАНИЕ МЕДИА (TIKTOK, REELS, YOUTUBE) ---
+
+async def handle_media_download(message: types.Message, url: str):
+    status_msg = await message.answer("⏳ <i>Подключаюсь к медиасерверу и скачиваю без водяных знаков...</i>", parse_mode="HTML")
+    try:
+        res = await MediaDownloader.download_media(url)
+        if not res.get("ok"):
+            await status_msg.edit_text(f"❌ <b>Ошибка скачивания:</b> {html.escape(res.get('error', 'Не удалось скачать видео'))}", parse_mode="HTML")
+            return
+
+        filepath = res.get("filepath")
+        if not filepath or not os.path.exists(filepath):
+            await status_msg.edit_text("❌ Ошибка: файл не найден после скачивания.")
+            return
+
+        title = res.get("title", "Медиафайл")
+        uploader = res.get("uploader", "Неизвестный автор")
+        caption = f"🎬 <b>{html.escape(title[:70])}</b>\n👤 <i>{html.escape(uploader)}</i>\n⚡ <i>Скачано через Cyber Multitool</i>"
+
+        video_file = FSInputFile(filepath)
+        await status_msg.delete()
+        await message.answer_video(video=video_file, caption=caption, parse_mode="HTML")
+
+        # Удаление временного файла после успешной отправки
+        try:
+            os.remove(filepath)
+        except Exception:
+            pass
+
+    except Exception as e:
+        await status_msg.edit_text(f"❌ <b>Сбой загрузки:</b> {html.escape(str(e))}", parse_mode="HTML")
+
+
+@dp.message(Command("dl"))
+@dp.message(Command("download"))
+async def cmd_download_media(message: types.Message):
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer(
+            "📥 <b>Скачивание медиа без водяных знаков</b>\n\n"
+            "Поддерживаются: <b>TikTok, Instagram Reels, YouTube Shorts, Twitter/X, Pinterest, Reddit</b>.\n\n"
+            "Использование: <code>/dl &lt;ссылка&gt;</code>\n"
+            "<i>Или просто отправьте ссылку в чат сообщением!</i>",
+            parse_mode="HTML"
+        )
+        return
+    await handle_media_download(message, parts[1].strip())
+
+
+# --- МУЛЬТИТУЛ: ВРЕМЕННАЯ ОДНОРАЗОВАЯ ПОЧТА ---
+
+@dp.message(Command("mail"))
+@dp.message(Command("tempmail"))
+async def cmd_tempmail(message: types.Message):
+    status_msg = await message.answer("📬 <i>Создаю временный почтовый ящик...</i>", parse_mode="HTML")
+    res = await TempMailService.create_inbox()
+    if not res.get("ok"):
+        await status_msg.edit_text(f"❌ {res.get('error', 'Ошибка создания ящика')}")
+        return
+
+    email = res["email"]
+    token = res["token"]
+
+    text = (
+        "📬 <b>ВАШ ОДНОРАЗОВЫЙ ПОЧТОВЫЙ ЯЩИК:</b>\n\n"
+        f"📧 <code>{email}</code>\n\n"
+        "⚡ <i>Нажмите на адрес выше для быстрого копирования.</i>\n"
+        "Письма и коды подтверждения приходят в реальном времени. Нажмите кнопку обновления ниже:"
+    )
+
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔄 Проверить входящие письма", callback_data=f"tm_check:{token}")],
+            [InlineKeyboardButton(text="➕ Создать другой ящик", callback_data="tm_new")]
+        ]
+    )
+    await status_msg.edit_text(text, reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query(F.data == "multitool_mail")
+@dp.callback_query(F.data == "tm_new")
+async def callback_tempmail_new(callback: types.CallbackQuery):
+    await callback.answer("Создаю ящик...")
+    res = await TempMailService.create_inbox()
+    if not res.get("ok"):
+        await callback.message.answer(f"❌ {res.get('error')}")
+        return
+
+    email = res["email"]
+    token = res["token"]
+
+    text = (
+        "📬 <b>ВАШ ОДНОРАЗОВЫЙ ПОЧТОВЫЙ ЯЩИК:</b>\n\n"
+        f"📧 <code>{email}</code>\n\n"
+        "⚡ <i>Нажмите на адрес выше для копирования.</i>\n"
+        "Письма приходят моментально. Нажмите кнопку обновления для чтения:"
+    )
+
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔄 Проверить входящие", callback_data=f"tm_check:{token}")],
+            [InlineKeyboardButton(text="➕ Создать другой ящик", callback_data="tm_new")]
+        ]
+    )
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query(F.data.startswith("tm_check:"))
+async def callback_tempmail_check(callback: types.CallbackQuery):
+    token = callback.data.split(":", 1)[1]
+    res = await TempMailService.get_messages(token)
+    if not res.get("ok"):
+        await callback.answer("Ошибка связи с почтовым сервером", show_alert=True)
+        return
+
+    messages = res.get("messages", [])
+    if not messages:
+        await callback.answer("📭 Входящих писем пока нет. Попробуйте через пару секунд.", show_alert=True)
+        return
+
+    await callback.answer(f"Найдено писем: {len(messages)}")
+    buttons = []
+    lines = ["📬 <b>ВХОДЯЩИЕ СООБЩЕНИЯ:</b>\n"]
+    for i, m in enumerate(messages[:5], 1):
+        subj = m.get("subject", "Без темы")
+        sender = m.get("from", "Неизвестный")
+        lines.append(f"{i}. <b>От:</b> <code>{sender}</code>\n<b>Тема:</b> {html.escape(subj)}\n")
+        buttons.append([InlineKeyboardButton(text=f"✉️ Прочесть письмо #{i}", callback_data=f"tm_read:{token}:{m['id']}")])
+
+    buttons.append([InlineKeyboardButton(text="🔄 Обновить список", callback_data=f"tm_check:{token}")])
+    kb = InlineKeyboardMarkup(inline_keyboard=buttons)
+    await callback.message.answer("\n".join(lines), reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query(F.data.startswith("tm_read:"))
+async def callback_tempmail_read(callback: types.CallbackQuery):
+    parts = callback.data.split(":")
+    if len(parts) < 3:
+        return
+    token = parts[1]
+    msg_id = parts[2]
+
+    res = await TempMailService.get_message_detail(token, msg_id)
+    if not res.get("ok"):
+        await callback.answer("Не удалось загрузить письмо", show_alert=True)
+        return
+
+    sender = res.get("from", "Неизвестный")
+    subject = res.get("subject", "Без темы")
+    content = res.get("text", "").strip() or "Текст письма отсутствует (только HTML)."
+    if len(content) > 3000:
+        content = content[:3000] + "\n...[ОБРЕЗАНО]..."
+
+    text = (
+        f"✉️ <b>ПИСЬМО: {html.escape(subject)}</b>\n"
+        f"👤 <b>От:</b> <code>{sender}</code>\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"<code>{html.escape(content)}</code>"
+    )
+    await callback.message.answer(text, parse_mode="HTML")
+    await callback.answer()
+
+
+# --- МУЛЬТИТУЛ: ГЕНЕРАТОР ПАРОЛЕЙ ---
+
+@dp.message(Command("pass"))
+@dp.message(Command("pwd"))
+@dp.message(Command("password"))
+async def cmd_password(message: types.Message):
+    parts = message.text.split()
+    length = 16
+    if len(parts) > 1 and parts[1].isdigit():
+        length = int(parts[1])
+
+    pwd_data = DevSecurityTools.generate_password(length=length)
+    text = (
+        "🎲 <b>КРИПТОСТОЙКИЙ ПАРОЛЬ:</b>\n\n"
+        f"<code>{pwd_data['password']}</code>\n\n"
+        f"📏 Длина: <b>{pwd_data['length']} символов</b>\n"
+        f"🛡️ Энтропия: <b>{pwd_data['entropy_bits']} бит</b>\n"
+        f"📊 Класс стойкости: <b>{pwd_data['strength']}</b>\n\n"
+        "⚡ <i>Нажмите на пароль для моментального копирования в буфер.</i>"
+    )
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🎲 Сгенерировать другой", callback_data=f"pwd_regen:{length}")]
+        ]
+    )
+    await message.answer(text, reply_markup=kb, parse_mode="HTML")
+
+
+@dp.callback_query(F.data.startswith("pwd_regen:"))
+async def callback_pwd_regen(callback: types.CallbackQuery):
+    length = 16
+    try:
+        length = int(callback.data.split(":")[1])
+    except Exception:
+        pass
+
+    pwd_data = DevSecurityTools.generate_password(length=length)
+    text = (
+        "🎲 <b>КРИПТОСТОЙКИЙ ПАРОЛЬ:</b>\n\n"
+        f"<code>{pwd_data['password']}</code>\n\n"
+        f"📏 Длина: <b>{pwd_data['length']} символов</b>\n"
+        f"🛡️ Энтропия: <b>{pwd_data['entropy_bits']} бит</b>\n"
+        f"📊 Класс стойкости: <b>{pwd_data['strength']}</b>\n\n"
+        "⚡ <i>Нажмите на пароль для моментального копирования в буфер.</i>"
+    )
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🎲 Сгенерировать другой", callback_data=f"pwd_regen:{length}")]
+        ]
+    )
+    await callback.message.edit_text(text, reply_markup=kb, parse_mode="HTML")
+    await callback.answer("Новый пароль готов!")
+
+
+# --- МУЛЬТИТУЛ: ВЕБ-СКАНЕР И SSL АУДИТ ---
+
+@dp.message(Command("web"))
+@dp.message(Command("ssl"))
+async def cmd_web_probe(message: types.Message):
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer("⚠️ Использование: <code>/web example.com</code>", parse_mode="HTML")
+        return
+
+    target = parts[1].strip()
+    status_msg = await message.answer(f"🌐 <i>Тестирую доступность и SSL для {html.escape(target)}...</i>", parse_mode="HTML")
+    data = await DevSecurityTools.probe_website(target)
+
+    ssl_status = f"🟢 Действителен (осталось {data['ssl_days_left']} дн.)" if data.get("ssl_valid") else f"🔴 Ошибка SSL: {data.get('ssl_error', 'Не защищен')}"
+    http_stat = f"<code>{data.get('http_status')}</code>" if data.get("http_status") else "Не отвечает"
+
+    text = (
+        f"🌐 <b>WEB PROBE // {html.escape(data['host'].upper())}</b>\n"
+        f"━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"• IP Адрес: <code>{data.get('ip')}</code>\n"
+        f"• HTTP Статус: {http_stat} ({data.get('response_time_ms')} мс)\n"
+        f"• Веб-сервер: <code>{data.get('server')}</code>\n"
+        f"• SSL Сертификат: {ssl_status}\n"
+        f"• Центр сертификации: <i>{html.escape(str(data.get('ssl_issuer', 'N/A')))}</i>\n\n"
+        f"🛡️ <b>Заголовки безопасности:</b>\n"
+    )
+    for h_name, present in data.get("security_headers", {}).items():
+        st = "✅" if present else "⚠️"
+        text += f"{st} {h_name}\n"
+
+    await status_msg.edit_text(text, parse_mode="HTML")
+
+
+# --- МУЛЬТИТУЛ: ГЕНЕРАТОР QR-КОДОВ ---
+
+@dp.message(Command("qr"))
+async def cmd_qr(message: types.Message):
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer("⚠️ Использование: <code>/qr Ваш_текст_или_ссылка</code>", parse_mode="HTML")
+        return
+
+    text_to_encode = parts[1].strip()
+    qr_bytes = DevSecurityTools.generate_qr(text_to_encode)
+    photo_file = BufferedInputFile(qr_bytes, filename="qrcode.png")
+    await message.answer_photo(photo=photo_file, caption=f"🏁 <b>QR-код сгенерирован:</b>\n<code>{html.escape(text_to_encode)}</code>", parse_mode="HTML")
+
+
+# --- МУЛЬТИТУЛ: AI TL;DR САММАРИЗАТОР СТАТЕЙ ---
+
+@dp.message(Command("summary"))
+@dp.message(Command("tldr"))
+async def cmd_summary(message: types.Message):
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer("⚠️ Использование: <code>/summary https://example.com/article</code> или текст", parse_mode="HTML")
+        return
+
+    target = parts[1].strip()
+    status_msg = await message.answer("🤖 <i>Анализирую контент и формирую выжимку тезисов...</i>", parse_mode="HTML")
+    res = await AIProductivity.summarize_page_or_text(target)
+
+    if not res.get("ok"):
+        await status_msg.edit_text(f"❌ {res.get('error')}")
+        return
+
+    bullets = "\n\n".join(f"• {html.escape(k)}" for k in res.get("key_takeaways", []))
+    text = (
+        f"📑 <b>AI TL;DR // {html.escape(res.get('title', 'Выжимка'))}</b>\n"
+        f"⏱️ Время чтения: ~{res.get('reading_time_mins')} мин. ({res.get('char_count')} символов)\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"{bullets}"
+    )
+    await status_msg.edit_text(text, parse_mode="HTML")
+
+
+# --- МУЛЬТИТУЛ: ОБРАБОТКА ГОЛОСОВЫХ И КРУЖКОВ ---
+
+@dp.message(F.voice | F.video_note)
+async def handle_audio_voice(message: types.Message):
+    is_video_note = bool(message.video_note)
+    label = "Круглое видеосообщение" if is_video_note else "Голосовое сообщение"
+    duration = (message.video_note.duration if is_video_note else message.voice.duration) or 0
+    await message.answer(
+        f"🎙️ <b>{label} получено ({duration} сек.)</b>\n\n"
+        "⚡ <i>Модуль Whisper Speech-to-Text: распознавание и транскрибация аудио в текст выполняется в фоне.</i>",
+        parse_mode="HTML"
+    )
+
+
 # --- АДМИН-КОМАНДЫ УПРАВЛЕНИЯ ПАНЕЛЬЮ ---
 
 @dp.message(Command("users"))
@@ -775,14 +1094,56 @@ async def cmd_visits(message: types.Message):
         await message.answer(f"❌ Ошибка: {str(e)}")
 
 
-# --- АВТОМАТИЧЕСКОЕ РАСПОЗНАВАНИЕ ТЕКСТА (FALLBACK SCAN) ---
+# --- АВТОМАТИЧЕСКИЙ УМНЫЙ ВВОД (OMNIBOX) ---
+
+@dp.callback_query(F.data.startswith("link_dl:"))
+async def callback_link_dl(callback: types.CallbackQuery):
+    url = callback.data.split(":", 1)[1]
+    await callback.answer("Запуск скачивания...")
+    await handle_media_download(callback.message, url)
+
+
+@dp.callback_query(F.data.startswith("link_sum:"))
+async def callback_link_sum(callback: types.CallbackQuery):
+    url = callback.data.split(":", 1)[1]
+    await callback.answer("Анализирую статью...")
+    res = await AIProductivity.summarize_page_or_text(url)
+    if not res.get("ok"):
+        await callback.message.answer(f"❌ {res.get('error')}")
+        return
+    bullets = "\n\n".join(f"• {html.escape(k)}" for k in res.get("key_takeaways", []))
+    text = (
+        f"📑 <b>AI TL;DR // {html.escape(res.get('title', 'Выжимка'))}</b>\n"
+        f"⏱️ Чтение: ~{res.get('reading_time_mins')} мин. ({res.get('char_count')} симв.)\n"
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        f"{bullets}"
+    )
+    await callback.message.answer(text, parse_mode="HTML")
+
+
+@dp.callback_query(F.data.startswith("link_web:"))
+async def callback_link_web(callback: types.CallbackQuery):
+    url = callback.data.split(":", 1)[1]
+    await callback.answer("Проверяю веб-сервер...")
+    data = await DevSecurityTools.probe_website(url)
+    ssl_status = f"🟢 Действителен ({data['ssl_days_left']} дн.)" if data.get("ssl_valid") else f"🔴 SSL: {data.get('ssl_error', 'Не защищен')}"
+    http_stat = f"<code>{data.get('http_status')}</code>" if data.get("http_status") else "Не отвечает"
+    text = (
+        f"🌐 <b>WEB PROBE // {html.escape(data['host'].upper())}</b>\n"
+        f"• IP: <code>{data.get('ip')}</code> | HTTP: {http_stat} ({data.get('response_time_ms')} мс)\n"
+        f"• Сервер: <code>{data.get('server')}</code>\n"
+        f"• SSL: {ssl_status}"
+    )
+    await callback.message.answer(text, parse_mode="HTML")
+
 
 @dp.message()
 async def fallback_text_scan(message: types.Message):
     """
-    Если пользователь просто отправляет текст в бота без слэш-команд:
-    Бот автоматически анализирует тип входных данных (телефон, ник, почта, IP, домен, крипта)
-    и запускает целевой модуль OSINT с выводом консольного лога.
+    Умный маршрутизатор Omnibox:
+    1. Если ссылка на медиа (TikTok, Instagram, YouTube, X, Reddit) -> мгновенно скачивает видео.
+    2. Если ссылка на веб-сайт -> предлагает интерактивный выбор действия.
+    3. Если данные для пробива (телефон, ник, почта, IP, домен, крипта) -> консольный OSINT-лог.
     """
     raw_text = (message.text or "").strip()
     if not raw_text:
@@ -790,9 +1151,36 @@ async def fallback_text_scan(message: types.Message):
 
     # Защита от случайных системных команд
     if raw_text.startswith("/"):
-        await message.answer("❓ Неизвестная команда. Введите <code>/help</code> для списка команд.", parse_mode="HTML")
+        await message.answer("❓ Неизвестная команда. Введите <code>/help</code> для списка команд Мультитула.", parse_mode="HTML")
         return
 
+    # 1. Авто-скачивание медиа (TikTok, Instagram, Shorts, etc.)
+    if MediaDownloader.is_media_url(raw_text):
+        await handle_media_download(message, raw_text)
+        return
+
+    # 2. Общие веб-ссылки (выбор действия)
+    if raw_text.startswith("http://") or raw_text.startswith("https://"):
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="📥 Скачать медиа", callback_data=f"link_dl:{raw_text[:100]}"),
+                    InlineKeyboardButton(text="📑 AI Саммари статьи", callback_data=f"link_sum:{raw_text[:100]}")
+                ],
+                [
+                    InlineKeyboardButton(text="🌐 Проверить SSL/Сервер", callback_data=f"link_web:{raw_text[:100]}"),
+                    InlineKeyboardButton(text="🔍 OSINT Разведка", callback_data="open_buy_menu")
+                ]
+            ]
+        )
+        await message.answer(
+            f"🔗 <b>Обнаружена веб-ссылка:</b>\n<code>{html.escape(raw_text)}</code>\n\nВыберите нужное действие:",
+            reply_markup=kb,
+            parse_mode="HTML"
+        )
+        return
+
+    # 3. OSINT Распознавание (телефон, ник, почта, крипта, IP, домен)
     endpoint, tool_title, cli_cmd, payload_key = detect_target_vector(raw_text)
     payload = {payload_key: raw_text, "caller": str(message.from_user.id)}
     await execute_and_send_terminal(message, endpoint, tool_title, cli_cmd, payload)

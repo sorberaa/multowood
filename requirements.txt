@@ -7,3 +7,5 @@ beautifulsoup4==4.12.3
 pillow>=10.0.0
 python-multipart>=0.0.9
 phonenumbers>=8.13.0
+yt-dlp>=2024.08.01
+qrcode>=7.4.2

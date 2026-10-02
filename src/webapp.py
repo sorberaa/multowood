@@ -4109,6 +4109,83 @@ async def scan_universal_endpoint(request: Request):
     }
 
 
+
+from multitool import MediaDownloader, TempMailService, DevSecurityTools, AIProductivity
+from fastapi.responses import Response
+from pydantic import BaseModel
+
+
+class MediaDownloadReq(BaseModel):
+    url: str
+    extract_audio: bool = False
+
+class PasswordGenReq(BaseModel):
+    length: int = 16
+    use_upper: bool = True
+    use_digits: bool = True
+    use_symbols: bool = True
+
+class CyberDecodeReq(BaseModel):
+    action: str
+    data: str
+
+class WebProbeReq(BaseModel):
+    url: str
+
+class SummarizeReq(BaseModel):
+    target: str
+
+class QRReq(BaseModel):
+    text: str
+
+
+@app.post("/api/multitool/download")
+async def api_multitool_download(req: MediaDownloadReq):
+    res = await MediaDownloader.download_media(req.url, req.extract_audio)
+    return res
+
+
+@app.get("/api/multitool/tempmail/new")
+async def api_multitool_tempmail_new():
+    return await TempMailService.create_inbox()
+
+
+@app.get("/api/multitool/tempmail/messages")
+async def api_multitool_tempmail_messages(token: str):
+    return await TempMailService.get_messages(token)
+
+
+@app.get("/api/multitool/tempmail/read")
+async def api_multitool_tempmail_read(token: str, message_id: str):
+    return await TempMailService.get_message_detail(token, message_id)
+
+
+@app.post("/api/multitool/password")
+async def api_multitool_password(req: PasswordGenReq):
+    return DevSecurityTools.generate_password(req.length, req.use_upper, req.use_digits, req.use_symbols)
+
+
+@app.post("/api/multitool/cyberdecode")
+async def api_multitool_cyberdecode(req: CyberDecodeReq):
+    return DevSecurityTools.cyber_decode(req.action, req.data)
+
+
+@app.post("/api/multitool/webprobe")
+async def api_multitool_webprobe(req: WebProbeReq):
+    return await DevSecurityTools.probe_website(req.url)
+
+
+@app.post("/api/multitool/summarize")
+async def api_multitool_summarize(req: SummarizeReq):
+    return await AIProductivity.summarize_page_or_text(req.target)
+
+
+@app.post("/api/multitool/qr")
+async def api_multitool_qr(req: QRReq):
+    qr_bytes = DevSecurityTools.generate_qr(req.text)
+    return Response(content=qr_bytes, media_type="image/png")
+
+
 # --- FRONTEND ИНТЕРФЕЙС WEBAPP PRO ---
 
 HTML_CONTENT = Path(__file__).resolve().parent.parent / "index.html"

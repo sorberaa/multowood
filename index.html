@@ -182,10 +182,10 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12
   <!-- TOP HEADER -->
   <header class="top-header">
     <div class="brand-group" onclick="showView('searchView')">
-      <div class="brand-icon"><i class="fa-solid fa-shield-halved"></i></div>
+      <div class="brand-icon"><i class="fa-solid fa-layer-group"></i></div>
       <div>
-        <div class="brand-text">ISLAND INTELLIGENCE <span class="live-badge">ONLINE</span></div>
-        <div class="brand-sub">OFFICIAL OSINT & CYBER FORENSICS</div>
+        <div class="brand-text">CYBER MULTITOOL <span class="live-badge">PRO</span></div>
+        <div class="brand-sub">OSINT • MEDIA DOWNLOADER • UTILITIES • DEV</div>
       </div>
     </div>
     <div class="header-badges">
@@ -206,6 +206,12 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12
   <nav class="nav-tabs">
     <button class="nav-tab-btn active" id="tab-searchView" onclick="showView('searchView')">
       <i class="fa-solid fa-bolt"></i> Поиск
+    </button>
+    <button class="nav-tab-btn" id="tab-downloaderView" onclick="showView('downloaderView')">
+      <i class="fa-solid fa-download"></i> Загрузчик
+    </button>
+    <button class="nav-tab-btn" id="tab-multitoolView" onclick="showView('multitoolView')">
+      <i class="fa-solid fa-toolbox"></i> Утилиты
     </button>
     <button class="nav-tab-btn" id="tab-foldersView" onclick="showView('foldersView')">
       <i class="fa-solid fa-folder"></i> Папки <span class="nav-tab-badge" id="totalCasesBadge">0</span>
@@ -405,7 +411,122 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12
   </section>
 
   <!-- ========================================================= -->
-  <!-- 6. VIEW: ADMIN CENTER (АДМИНКА) -->
+  <!-- 6. VIEW: MEDIA DOWNLOADER (ЗАГРУЗЧИК БЕЗ ВОДЯНЫХ ЗНАКОВ) -->
+  <!-- ========================================================= -->
+  <section class="view-page" id="downloaderView">
+    <div class="result-card">
+      <div class="result-title" style="margin-bottom:8px;">
+        <i class="fa-solid fa-cloud-arrow-down" style="color:var(--primary);"></i> Мульти-Загрузчик Медиа
+      </div>
+      <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+        Скачивание видео и аудио без водяных знаков из TikTok, Instagram Reels, YouTube Shorts, Twitter/X, Pinterest и Reddit.
+      </p>
+
+      <div class="omni-input-row" style="margin-bottom:10px;">
+        <div class="omni-input-wrap">
+          <i class="fa-solid fa-link omni-icon"></i>
+          <input class="omni-input" id="dlInputUrl" placeholder="Вставьте ссылку на TikTok, Instagram, YouTube..." onkeydown="if(event.key==='Enter') executeMediaDownload(false)">
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <button class="btn btn-primary" onclick="executeMediaDownload(false)" id="dlVideoBtn">
+          <i class="fa-solid fa-film"></i> Скачать Видео MP4
+        </button>
+        <button class="btn btn-secondary" onclick="executeMediaDownload(true)" id="dlAudioBtn">
+          <i class="fa-solid fa-music"></i> Только Аудио MP3
+        </button>
+      </div>
+
+      <!-- Live status / Spinner -->
+      <div id="dlStatusBox" style="display:none; padding:12px; border-radius:var(--radius-md); background:var(--surface-raised); border:1px solid var(--border); font-size:12px; margin-bottom:12px;">
+        <i class="fa-solid fa-spinner fa-spin" style="color:var(--primary); margin-right:6px;"></i> <span id="dlStatusText">Подготовка...</span>
+      </div>
+
+      <!-- Result Card -->
+      <div id="dlResultBox" style="display:none;" class="stat-box">
+        <div style="font-size:12px; font-weight:800; color:var(--primary); margin-bottom:6px;" id="dlResultTitle">Медиа готово</div>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;" id="dlResultMeta"></div>
+        <div style="display:flex; gap:8px;">
+          <a class="btn btn-primary btn-sm" id="dlDownloadLink" href="#" target="_blank"><i class="fa-solid fa-download"></i> Сохранить на устройство</a>
+          <button class="btn btn-secondary btn-sm" onclick="copyDlLink()"><i class="fa-regular fa-copy"></i> Копировать ссылку</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- 7. VIEW: MULTITOOL UTILITIES (УТИЛИТЫ И БЕЗОПАСНОСТЬ) -->
+  <!-- ========================================================= -->
+  <section class="view-page" id="multitoolView">
+    
+    <!-- 1. ВРЕМЕННАЯ ПОЧТА -->
+    <div class="result-card" style="margin-bottom:12px;">
+      <div class="result-header-toolbar">
+        <div class="result-title"><i class="fa-solid fa-envelope-open-text" style="color:var(--primary);"></i> Одноразовая Временная Почта</div>
+        <button class="btn btn-primary btn-sm" onclick="initTempMailBox()"><i class="fa-solid fa-plus"></i> Новый ящик</button>
+      </div>
+      <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">
+        Безопасный ящик для регистраций и получения кодов подтверждения без спама.
+      </p>
+
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;" id="tempMailBoxRow">
+        <input class="omni-input" id="tempMailAddressInput" readonly value="Нажмите «Новый ящик» для создания" style="font-family:var(--font-mono); font-size:12px;">
+        <button class="btn btn-secondary" onclick="copyTempMail()"><i class="fa-regular fa-copy"></i></button>
+        <button class="btn btn-secondary" onclick="checkTempMailMessages()"><i class="fa-solid fa-arrows-rotate"></i></button>
+      </div>
+
+      <div id="tempMailMessagesList" style="font-size:11px;">
+        <div style="color:var(--text-muted); padding:8px 0;">Нажмите кнопку проверки для чтения входящих писем.</div>
+      </div>
+    </div>
+
+    <!-- 2. ГЕНЕРАТОР ПАРОЛЕЙ -->
+    <div class="result-card" style="margin-bottom:12px;">
+      <div class="result-title" style="margin-bottom:8px;"><i class="fa-solid fa-key" style="color:var(--amber);"></i> Генератор Криптостойких Паролей</div>
+      <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
+        <input class="omni-input" id="pwdOutputInput" readonly value="" style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--primary);">
+        <button class="btn btn-primary" onclick="copyGeneratedPwd()"><i class="fa-regular fa-copy"></i></button>
+        <button class="btn btn-secondary" onclick="generateNewPassword()"><i class="fa-solid fa-dice"></i></button>
+      </div>
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-muted);">
+        <span>Длина: <b id="pwdLenLabel" style="color:#fff;">16</b> симв.</span>
+        <input type="range" min="8" max="48" value="16" id="pwdLengthRange" oninput="document.getElementById('pwdLenLabel').innerText=this.value; generateNewPassword();" style="width:160px; accent-color:var(--primary);">
+        <span id="pwdEntropyBadge" style="font-weight:700; color:var(--primary);">96 бит (Военный класс)</span>
+      </div>
+    </div>
+
+    <!-- 3. WEB PROBE & SSL -->
+    <div class="result-card" style="margin-bottom:12px;">
+      <div class="result-title" style="margin-bottom:8px;"><i class="fa-solid fa-globe" style="color:var(--cyan);"></i> Web Probe & Проверка SSL-сертификата</div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <input class="omni-input" id="webProbeInput" placeholder="Введите домен (например google.com)..." onkeydown="if(event.key==='Enter') executeWebProbe()">
+        <button class="btn btn-primary" onclick="executeWebProbe()"><i class="fa-solid fa-bolt"></i> Тест</button>
+      </div>
+      <div id="webProbeResultBox" style="display:none;" class="stat-box">
+        <pre id="webProbeOutputPre" style="font-family:var(--font-mono); font-size:11px; color:var(--text); white-space:pre-wrap; margin:0;"></pre>
+      </div>
+    </div>
+
+    <!-- 4. QR-КОД ГЕНЕРАТОР -->
+    <div class="result-card">
+      <div class="result-title" style="margin-bottom:8px;"><i class="fa-solid fa-qrcode" style="color:#fff;"></i> Генератор QR-Кодов</div>
+      <div style="display:flex; gap:8px; margin-bottom:10px;">
+        <input class="omni-input" id="qrInputData" placeholder="Текст или ссылка для QR..." onkeydown="if(event.key==='Enter') generateQRCode()">
+        <button class="btn btn-primary" onclick="generateQRCode()"><i class="fa-solid fa-wand-magic-sparkles"></i> Создать</button>
+      </div>
+      <div id="qrResultBox" style="display:none; text-align:center; padding:12px; background:#000; border-radius:var(--radius-md); border:1px solid var(--border);">
+        <img id="qrResultImg" style="width:180px; height:180px; border-radius:8px; background:#fff; padding:6px; display:inline-block; margin-bottom:8px;">
+        <div>
+          <a id="qrDownloadBtn" class="btn btn-secondary btn-sm" download="qrcode.png"><i class="fa-solid fa-download"></i> Скачать PNG</a>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ========================================================= -->
+  <!-- 8. VIEW: ADMIN CENTER (АДМИНКА) -->
   <!-- ========================================================= -->
   <section class="view-page" id="adminView">
     <div class="result-card">
@@ -2853,6 +2974,219 @@ function openExternalUrl(url) {
 }
 
 // =====================================================================
+// --- MULTITOOL INTERACTIVE CLIENT LOGIC ---
+// =====================================================================
+
+let currentTempMailToken = '';
+let currentTempMailAddress = '';
+let currentLastDlUrl = '';
+
+// --- 1. MEDIA DOWNLOADER ---
+async function executeMediaDownload(isAudio) {
+  const input = document.getElementById('dlInputUrl');
+  const url = (input.value || '').trim();
+  if (!url) return alert('Вставьте ссылку на видео (TikTok, Reels, YouTube Shorts, X, etc.)');
+
+  const statusBox = document.getElementById('dlStatusBox');
+  const statusText = document.getElementById('dlStatusText');
+  const resultBox = document.getElementById('dlResultBox');
+
+  statusBox.style.display = 'block';
+  resultBox.style.display = 'none';
+  statusText.innerText = isAudio ? 'Извлечение аудиодорожки MP3...' : 'Скачивание видео без водяных знаков...';
+
+  try {
+    const res = await fetch(API_BASE + '/api/multitool/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url, extract_audio: isAudio })
+    });
+    const data = await res.json();
+    statusBox.style.display = 'none';
+
+    if (!data.ok) {
+      alert('Ошибка: ' + (data.error || 'Не удалось скачать медиа'));
+      return;
+    }
+
+    resultBox.style.display = 'block';
+    document.getElementById('dlResultTitle').innerText = data.title || 'Файл готов';
+    const mbSize = (data.filesize / (1024 * 1024)).toFixed(1);
+    document.getElementById('dlResultMeta').innerText = `Автор: ${data.uploader || 'N/A'} | Длительность: ${data.duration || 0} сек. | Размер: ${mbSize} МБ`;
+    
+    currentLastDlUrl = url;
+    const dlLink = document.getElementById('dlDownloadLink');
+    dlLink.href = data.filepath ? (API_BASE + '/api/multitool/file?p=' + encodeURIComponent(data.filepath)) : url;
+    showToast('Медиа успешно обработано!');
+  } catch (e) {
+    statusBox.style.display = 'none';
+    alert('Сбой запроса: ' + e.message);
+  }
+}
+
+function copyDlLink() {
+  if (!currentLastDlUrl) return;
+  navigator.clipboard.writeText(currentLastDlUrl);
+  showToast('Ссылка скопирована');
+}
+
+// --- 2. TEMP MAIL ---
+async function initTempMailBox() {
+  const addrInput = document.getElementById('tempMailAddressInput');
+  addrInput.value = 'Генерация ящика...';
+  try {
+    const res = await fetch(API_BASE + '/api/multitool/tempmail/new');
+    const data = await res.json();
+    if (data.ok) {
+      currentTempMailAddress = data.email;
+      currentTempMailToken = data.token;
+      addrInput.value = data.email;
+      document.getElementById('tempMailMessagesList').innerHTML = '<div style="color:var(--primary); padding:6px 0;">Ящик готов. Ожидание писем...</div>';
+      showToast('Ящик создан!');
+    } else {
+      addrInput.value = 'Ошибка создания';
+      alert('Ошибка: ' + data.error);
+    }
+  } catch (e) {
+    addrInput.value = 'Сбой сети';
+  }
+}
+
+function copyTempMail() {
+  if (!currentTempMailAddress) return alert('Сначала создайте ящик');
+  navigator.clipboard.writeText(currentTempMailAddress);
+  showToast('Email скопирован в буфер');
+}
+
+async function checkTempMailMessages() {
+  if (!currentTempMailToken) return alert('Сначала создайте ящик');
+  const container = document.getElementById('tempMailMessagesList');
+  container.innerHTML = '<div style="color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Проверка входящих...</div>';
+  try {
+    const res = await fetch(`${API_BASE}/api/multitool/tempmail/messages?token=${encodeURIComponent(currentTempMailToken)}`);
+    const data = await res.json();
+    if (!data.ok || !data.messages || data.messages.length === 0) {
+      container.innerHTML = '<div style="color:var(--text-muted); padding:6px 0;">📭 Входящих писем пока нет. Обновите через пару секунд.</div>';
+      return;
+    }
+    let html = '';
+    data.messages.forEach(m => {
+      html += `
+        <div style="background:var(--surface-raised); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px; margin-bottom:6px; cursor:pointer;" onclick="readTempMailMessage('${m.id}')">
+          <div style="font-weight:700; color:#fff;">${escapeHtml(m.subject || 'Без темы')}</div>
+          <div style="font-size:10px; color:var(--text-muted);">От: ${escapeHtml(m.from || '')} | ${m.created_at ? m.created_at.slice(11, 19) : ''}</div>
+          <div style="font-size:11px; color:var(--primary); margin-top:2px;">Нажмите, чтобы открыть письмо →</div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = '<div style="color:var(--red);">Ошибка проверки: ' + e.message + '</div>';
+  }
+}
+
+async function readTempMailMessage(msgId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/multitool/tempmail/read?token=${encodeURIComponent(currentTempMailToken)}&message_id=${encodeURIComponent(msgId)}`);
+    const data = await res.json();
+    if (data.ok) {
+      alert(`Письмо от: ${data.from}\nТема: ${data.subject}\n\nТекст:\n${data.text || '(HTML)'}`);
+    }
+  } catch (e) {
+    alert('Не удалось прочесть письмо');
+  }
+}
+
+// --- 3. PASSWORD GENERATOR ---
+function generateNewPassword() {
+  const range = document.getElementById('pwdLengthRange');
+  const len = parseInt(range ? range.value : 16, 10) || 16;
+  fetch(API_BASE + '/api/multitool/password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ length: len, use_upper: true, use_digits: true, use_symbols: true })
+  }).then(r => r.json()).then(d => {
+    if (d.ok) {
+      document.getElementById('pwdOutputInput').value = d.password;
+      document.getElementById('pwdEntropyBadge').innerText = `${d.entropy_bits} бит (${d.strength})`;
+    }
+  });
+}
+
+function copyGeneratedPwd() {
+  const val = document.getElementById('pwdOutputInput').value;
+  if (!val) return;
+  navigator.clipboard.writeText(val);
+  showToast('Пароль скопирован');
+}
+
+// --- 4. WEB PROBE & SSL ---
+async function executeWebProbe() {
+  const input = document.getElementById('webProbeInput');
+  const target = (input.value || '').trim();
+  if (!target) return alert('Введите домен или URL');
+
+  const pre = document.getElementById('webProbeOutputPre');
+  const box = document.getElementById('webProbeResultBox');
+  box.style.display = 'block';
+  pre.innerText = 'Тестирование DNS, HTTP и SSL сертификата...';
+
+  try {
+    const res = await fetch(API_BASE + '/api/multitool/webprobe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: target })
+    });
+    const d = await res.json();
+    if (!d.ok) {
+      pre.innerText = 'Ошибка: ' + (d.error || 'Сбой проверки');
+      return;
+    }
+    const sslStr = d.ssl_valid ? `Действителен (осталось ${d.ssl_days_left} дней)` : `Ошибка SSL: ${d.ssl_error || 'Не защищен'}`;
+    let secH = '';
+    for (const [k, v] of Object.entries(d.security_headers || {})) {
+      secH += `  [${v ? 'OK' : '--'}] ${k}\n`;
+    }
+    pre.innerText = 
+`[+] Хост: ${d.host} (IP: ${d.ip})
+[+] HTTP Статус: ${d.http_status || 'N/A'} (Время ответа: ${d.response_time_ms} мс)
+[+] Веб-сервер: ${d.server}
+[+] SSL Сертификат: ${sslStr}
+[+] Центр сертификации: ${d.ssl_issuer || 'N/A'}
+[*] Заголовки безопасности:
+${secH}`;
+  } catch (e) {
+    pre.innerText = 'Ошибка сети: ' + e.message;
+  }
+}
+
+// --- 5. QR CODE GENERATOR ---
+async function generateQRCode() {
+  const text = (document.getElementById('qrInputData').value || '').trim();
+  if (!text) return alert('Введите текст или ссылку для QR-кода');
+
+  const box = document.getElementById('qrResultBox');
+  const img = document.getElementById('qrResultImg');
+  const dl = document.getElementById('qrDownloadBtn');
+
+  try {
+    const res = await fetch(API_BASE + '/api/multitool/qr', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: text })
+    });
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    img.src = url;
+    dl.href = url;
+    box.style.display = 'block';
+    showToast('QR-код готов');
+  } catch (e) {
+    alert('Ошибка генерации QR');
+  }
+}
+
+// =====================================================================
 // --- STARTUP INITIALIZATION ---
 // =====================================================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -2863,6 +3197,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initUserProfile();
   updateCasesCountBadge();
   renderCatalog();
+  generateNewPassword();
 });
 </script>
 </body>
