@@ -1,3306 +1,1111 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Island Intelligence // Cyber & OSINT Forensics</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-<style>
-:root {
-  --bg: #07090e;
-  --surface: #0c1017;
-  --surface-raised: #111722;
-  --surface-hover: #161e2e;
-  --border: #18202f;
-  --border-focus: #38bdf8;
-  --primary: #38bdf8;
-  --primary-glow: rgba(56, 189, 248, 0.15);
-  --cyan: #06b6d4;
-  --green: #10b981;
-  --amber: #f59e0b;
-  --purple: #8b5cf6;
-  --danger: #f43f5e;
-  --text: #f1f5f9;
-  --text-muted: #64748b;
-  --text-dim: #475569;
-  --font-mono: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Multiwood Multitool</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-* { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
-body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12px; padding-bottom: 80px; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --surface: #141923;
+      --surface-raised: #1c2331;
+      --surface-hover: #232c3d;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: #38bdf8;
+      --primary: #38bdf8;
+      --primary-glow: rgba(56, 189, 248, 0.25);
+      --accent: #818cf8;
+      --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
 
-.app-container { max-width: 860px; margin: 0 auto; position: relative; z-index: 1; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      outline: none;
+    }
 
-/* Top Header */
-.top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 12px; background: rgba(7, 9, 14, 0.95); backdrop-filter: blur(14px); position: sticky; top: 0; z-index: 100; }
-.brand-group { display: flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none; }
-.brand-icon { width: 30px; height: 30px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #0284c7, #38bdf8); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 14px; box-shadow: 0 0 15px var(--primary-glow); }
-.brand-text { font-size: 13px; font-weight: 800; color: #fff; letter-spacing: 0.3px; line-height: 1.1; }
-.brand-sub { font-size: 9px; color: var(--text-muted); font-family: var(--font-mono); letter-spacing: 0.5px; }
-.live-badge { font-size: 8px; font-weight: 800; padding: 1px 5px; border-radius: 4px; background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      padding-bottom: 85px; /* Space for bottom nav */
+    }
 
-.header-badges { display: flex; align-items: center; gap: 6px; }
-.pill-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.15s; }
-.pill-badge:hover { border-color: var(--primary); }
-.pill-quota { color: var(--amber); border-color: rgba(245, 158, 11, 0.3); }
-.pill-quota:hover { border-color: var(--amber); }
+    /* Top Navigation / Header */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(11, 14, 20, 0.85);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-/* Navigation Tab Bar (Minimalist) */
-.nav-tabs { display: flex; gap: 5px; margin-bottom: 14px; background: var(--surface); padding: 4px; border-radius: var(--radius-md); border: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
-.nav-tabs::-webkit-scrollbar { display: none; }
-.nav-tab-btn { flex: 1; min-width: 80px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 10px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; color: var(--text-muted); background: transparent; border: none; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-.nav-tab-btn:hover { color: #fff; background: var(--surface-raised); }
-.nav-tab-btn.active { color: #fff; background: var(--surface-raised); border: 1px solid var(--border); color: var(--primary); box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
-.nav-tab-badge { font-size: 9px; padding: 1px 5px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); color: var(--primary); }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-/* View pages */
-.view-page { display: none; }
-.view-page.active { display: block; animation: fadeIn 0.15s ease-out; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: translateY(0); } }
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--accent-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
 
-/* OmniSearch Bar */
-.omni-container { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
-.omni-input-row { display: flex; gap: 8px; align-items: center; position: relative; }
-.omni-input-wrap { flex: 1; position: relative; display: flex; align-items: center; }
-.omni-icon { position: absolute; left: 12px; color: var(--text-muted); font-size: 13px; }
-.omni-input { width: 100%; padding: 11px 12px 11px 36px; background: #05070b; border: 1px solid var(--border); border-radius: var(--radius-md); color: #fff; font-size: 13px; outline: none; transition: border-color 0.15s; }
-.omni-input:focus { border-color: var(--primary); }
-.omni-type-badge { position: absolute; right: 10px; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: rgba(56, 189, 248, 0.15); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.3); pointer-events: none; display: none; }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-.omni-actions { display: flex; gap: 6px; }
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
 
-/* Buttons */
-.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; transition: all 0.15s; white-space: nowrap; }
-.btn-primary { background: #fff; color: #000; font-weight: 800; }
-.btn-primary:hover { background: #e2e8f0; }
-.btn-accent { background: var(--primary); color: #000; font-weight: 800; }
-.btn-accent:hover { filter: brightness(1.1); }
-.btn-secondary { background: var(--surface-raised); color: var(--text); border: 1px solid var(--border); }
-.btn-secondary:hover { border-color: var(--primary); color: #fff; }
-.btn-yellow { background: var(--amber); color: #000; font-weight: 800; }
-.btn-danger { background: rgba(244, 63, 94, 0.12); color: var(--danger); border: 1px solid rgba(244, 63, 94, 0.3); }
-.btn-danger:hover { background: rgba(244, 63, 94, 0.25); }
-.btn-sm { padding: 4px 9px; font-size: 10px; }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-/* Quick Launchpad Chips */
-.quick-launch-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 6px; margin-top: 10px; }
-.quick-chip { background: var(--surface-raised); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 7px; }
-.quick-chip:hover { border-color: var(--primary); background: var(--surface-hover); transform: translateY(-1px); }
-.quick-chip-icon { font-size: 12px; }
-.quick-chip-text { font-size: 11px; font-weight: 700; color: #fff; }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--success);
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
 
-/* ========================================================= */
-/* --- FOLDERS & INVESTIGATION CASES SYSTEM (ПАПКИ) --- */
-/* ========================================================= */
-.folder-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.folder-pills-row { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: none; }
-.folder-pills-row::-webkit-scrollbar { display: none; }
-.folder-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
-.folder-pill:hover, .folder-pill.active { background: var(--surface-raised); border-color: var(--primary); color: #fff; }
-.folder-pill.active .folder-pill-count { background: var(--primary); color: #000; }
-.folder-pill-count { font-size: 9px; font-weight: 800; padding: 1px 5px; border-radius: 8px; background: var(--border); color: var(--text-muted); }
+    .badge-status::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+    }
 
-.folder-cases-container { display: flex; flex-direction: column; gap: 8px; }
-.case-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; transition: all 0.15s; display: flex; flex-direction: column; gap: 8px; }
-.case-card:hover { border-color: rgba(56, 189, 248, 0.4); }
-.case-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
-.case-target-title { font-size: 13px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
-.case-meta { font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
-.case-note { font-size: 11px; color: #cbd5e1; background: #07090e; padding: 6px 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); border-left: 2px solid var(--primary); }
-.case-actions { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 2px; }
+    /* Container */
+    .container {
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+      flex: 1;
+    }
 
-.empty-state { text-align: center; padding: 32px 16px; background: var(--surface); border: 1px dashed var(--border); border-radius: var(--radius-md); color: var(--text-muted); }
-.empty-state i { font-size: 32px; color: var(--text-dim); margin-bottom: 8px; }
+    /* View Pages */
+    .view-page {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
 
-/* Filter Chips (Catalog) */
-.filter-chips { display: flex; gap: 5px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 12px; scrollbar-width: none; }
-.filter-chips::-webkit-scrollbar { display: none; }
-.chip { padding: 5px 11px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 10px; font-weight: 700; color: var(--text-muted); white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.15s; }
-.chip:hover, .chip.active { background: var(--surface-raised); border-color: var(--primary); color: #fff; }
+    .view-page.active {
+      display: block;
+    }
 
-/* Catalog Cards */
-.group-title { font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 14px 0 6px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-.cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 8px; }
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; cursor: pointer; transition: all 0.15s; display: flex; flex-direction: column; justify-content: space-between; }
-.card:hover { border-color: var(--primary); background: var(--surface-hover); transform: translateY(-1px); }
-.card-title { font-size: 12px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; line-height: 1.3; }
-.card-purpose { font-size: 10px; color: #94a3b8; line-height: 1.4; margin: 6px 0 10px; flex: 1; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.badge { font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; white-space: nowrap; }
-.badge-api { background: rgba(56, 189, 248, 0.1); color: var(--primary); border: 1px solid rgba(56, 189, 248, 0.25); }
-.badge-web { background: var(--surface-raised); color: var(--text-muted); border: 1px solid var(--border); }
-.badge-photo { background: rgba(245, 158, 11, 0.12); color: var(--amber); border: 1px solid rgba(245, 158, 11, 0.3); }
+    /* Cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
 
-/* Custom Result Card */
-.result-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
-.result-header-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-.result-title { font-size: 13px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 6px; }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
 
-.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 6px; margin-bottom: 10px; }
-.stat-box { background: #07090e; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 10px; }
-.stat-label { font-size: 9px; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; }
-.stat-val { font-size: 11px; font-weight: 700; color: #fff; word-break: break-all; }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-/* Spinner */
-.loader { display: none; text-align: center; padding: 18px; }
-.spinner { width: 22px; height: 22px; border: 2px solid #1e293b; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 6px; }
-@keyframes spin { to { transform: rotate(360deg); } }
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
 
-/* Modals */
-.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; backdrop-filter: blur(8px); align-items: center; justify-content: center; padding: 16px; }
-.modal-box { background: #0c111a; border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 18px; max-width: 440px; width: 100%; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.modal-title { font-size: 13px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 7px; }
+    /* Supported Platforms Badge Carousel */
+    .platforms-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+    .platforms-row::-webkit-scrollbar { display: none; }
 
-/* Toast */
-.toast-msg { position: fixed; bottom: 20px; right: 20px; background: #0c1424; border: 1px solid var(--primary); color: #fff; padding: 10px 16px; border-radius: var(--radius-sm); font-size: 11px; font-weight: 700; z-index: 10000; box-shadow: 0 4px 20px rgba(0,0,0,0.5); display: none; animation: slideUp 0.2s ease-out; }
-@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .platform-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+    }
+    .platform-badge i { font-size: 13px; }
+    .platform-badge.tiktok i { color: #00f2fe; }
+    .platform-badge.instagram i { color: #e1306c; }
+    .platform-badge.youtube i { color: #ff0000; }
+    .platform-badge.x i { color: #fff; }
+    .platform-badge.pinterest i { color: #e60023; }
+    .platform-badge.vk i { color: #0077ff; }
 
-/* Collapsible CLI */
-.cli-box { background: #040609; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px; font-family: var(--font-mono); font-size: 11px; line-height: 1.5; color: #cbd5e1; max-height: 240px; overflow-y: auto; white-space: pre-wrap; margin-top: 8px; }
+    /* Input Fields */
+    .input-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
 
-/* Admin Table */
-.admin-table { width: 100%; border-collapse: collapse; font-size: 11px; }
-.admin-table th { background: #07090e; color: var(--text-muted); padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); font-size: 10px; text-transform: uppercase; }
-.admin-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: #cbd5e1; }
-.admin-table tr:hover td { background: var(--surface-hover); }
+    .input-wrap i.prefix-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 14px;
+      pointer-events: none;
+    }
 
-/* Dropzone */
-.dropzone { border: 1px dashed var(--border); border-radius: var(--radius-md); padding: 16px; text-align: center; background: #05070c; cursor: pointer; transition: all 0.2s; margin-top: 8px; }
-.dropzone:hover, .dropzone.dragover { border-color: var(--primary); background: var(--surface-raised); }
-</style>
+    .custom-input {
+      width: 100%;
+      padding: 13px 42px 13px 40px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .custom-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+      background: #19202c;
+    }
+
+    .input-paste-btn {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.18s;
+      text-decoration: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      color: #fff;
+      box-shadow: 0 4px 14px var(--primary-glow);
+      width: 100%;
+    }
+
+    .btn-secondary {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover {
+      background: var(--surface-hover);
+    }
+
+    .btn-sm {
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    /* Result Preview Box */
+    .result-box {
+      margin-top: 14px;
+      padding: 14px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      display: none;
+    }
+
+    .result-box.active {
+      display: block;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .media-preview-header {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .media-thumb {
+      width: 64px;
+      height: 64px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #07090e;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .media-info {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .media-title {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #fff;
+    }
+
+    .media-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Utilities Grid */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .tool-tile {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tool-tile:active {
+      transform: scale(0.97);
+      background: var(--surface-raised);
+    }
+
+    .tool-tile-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-bottom: 10px;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--primary);
+    }
+
+    .tool-tile-title {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 3px;
+      color: #fff;
+    }
+
+    .tool-tile-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 50;
+      background: rgba(11, 14, 20, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 12px max(8px, env(safe-area-inset-bottom));
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 12px;
+      transition: all 0.2s;
+      border: none;
+      background: none;
+    }
+
+    .nav-item i {
+      font-size: 18px;
+      transition: transform 0.2s;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+    }
+
+    .nav-item.active i {
+      transform: translateY(-2px);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 95px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #1e293b;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Admin Table */
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .admin-table th {
+      padding: 8px 10px;
+      text-align: left;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+    .admin-table td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
-<div class="app-container">
-  
-  <!-- TOP HEADER -->
-  <header class="top-header">
-    <div class="brand-group" onclick="showView('searchView')">
-      <div class="brand-icon"><i class="fa-solid fa-layer-group"></i></div>
+  <!-- Top Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">
+        <i class="fa-solid fa-bolt"></i>
+      </div>
       <div>
-        <div class="brand-text">CYBER MULTITOOL <span class="live-badge">PRO</span></div>
-        <div class="brand-sub">OSINT • MEDIA DOWNLOADER • UTILITIES • DEV</div>
+        <div class="brand-title">Multiwood</div>
+        <div class="brand-subtitle">Smart Mobile Multitool</div>
       </div>
     </div>
-    <div class="header-badges">
-      <div class="pill-badge pill-quota" id="quotaBadge" onclick="openStarsModal()" title="Баланс запросов и Stars">
-        <i class="fa-solid fa-star"></i> <span id="quotaSpan">5/5</span>
-      </div>
-      <div class="pill-badge" id="currentUserBadge" onclick="handleUserBadgeClick()" title="Профиль агента / Вход">
-        <i class="fa-solid fa-user-shield" id="userBadgeIcon" style="color:var(--primary);"></i>
-        <span id="currentUsernameSpan">Агент</span>
-      </div>
-      <button class="btn btn-yellow btn-sm" id="navAdminBtn" onclick="showView('adminView')" style="display:none;">
-        <i class="fa-solid fa-crown"></i> Админ
+    <div class="header-actions">
+      <span class="badge-status">Online 24/7</span>
+      <button class="btn btn-secondary btn-sm" id="adminHeaderBtn" onclick="openAdminTab()" style="display:none;">
+        <i class="fa-solid fa-shield-halved" style="color:var(--warning);"></i>
       </button>
     </div>
   </header>
 
-  <!-- NAVIGATION TABS -->
-  <nav class="nav-tabs">
-    <button class="nav-tab-btn active" id="tab-searchView" onclick="showView('searchView')">
-      <i class="fa-solid fa-bolt"></i> Поиск
+  <!-- Main View Container -->
+  <div class="container">
+
+    <!-- 1. VIEW: DOWNLOADER (MAIN TAB) -->
+    <section class="view-page active" id="view-downloader">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fa-solid fa-cloud-arrow-down" style="color:var(--primary);"></i>
+            Скачивание видео & аудио
+          </div>
+        </div>
+        <div class="card-desc">
+          Вставьте ссылку из любой соцсети — видео будет скачано в высоком качестве и <b>без водяных знаков</b>.
+        </div>
+
+        <!-- Platform tags -->
+        <div class="platforms-row">
+          <div class="platform-badge tiktok"><i class="fa-brands fa-tiktok"></i> TikTok</div>
+          <div class="platform-badge instagram"><i class="fa-brands fa-instagram"></i> Reels & Stories</div>
+          <div class="platform-badge youtube"><i class="fa-brands fa-youtube"></i> Shorts & Video</div>
+          <div class="platform-badge pinterest"><i class="fa-brands fa-pinterest"></i> Pinterest</div>
+          <div class="platform-badge x"><i class="fa-brands fa-x-twitter"></i> X / Twitter</div>
+          <div class="platform-badge vk"><i class="fa-brands fa-vk"></i> VK Video</div>
+        </div>
+
+        <!-- Input Bar -->
+        <div class="input-wrap">
+          <i class="fa-solid fa-link prefix-icon"></i>
+          <input type="url" class="custom-input" id="dlUrlInput" placeholder="Вставьте ссылку (TikTok, Reels, Shorts...)" autocomplete="off">
+          <button class="input-paste-btn" onclick="pasteClipboard()">Вставить</button>
+        </div>
+
+        <!-- Download Buttons -->
+        <div class="btn-grid">
+          <button class="btn btn-primary" onclick="startDownload(false)" id="btnDlVideo">
+            <i class="fa-solid fa-video"></i> Скачать Видео MP4
+          </button>
+          <button class="btn btn-secondary" onclick="startDownload(true)" id="btnDlAudio">
+            <i class="fa-solid fa-music"></i> Только Аудио MP3
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="dlLoadingBox" style="display:none; text-align:center; padding:18px 0;">
+          <div class="spinner" style="width:26px; height:26px; border-width:3px; margin-bottom:8px;"></div>
+          <div style="font-size:12px; color:var(--text-muted);" id="dlLoadingText">Подключение к медиасерверу...</div>
+        </div>
+
+        <!-- Result Box -->
+        <div class="result-box" id="dlResultBox">
+          <div class="media-preview-header">
+            <img id="dlThumb" class="media-thumb" src="" alt="Thumbnail" style="display:none;">
+            <div class="media-info">
+              <div class="media-title" id="dlTitle">Медиа готово к сохранению</div>
+              <div class="media-meta">
+                <span id="dlAuthor"><i class="fa-solid fa-user"></i> Автор: N/A</span>
+                <span id="dlSize"><i class="fa-solid fa-file"></i> Размер: N/A</span>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <a class="btn btn-primary btn-sm" id="dlSaveBtn" href="#" target="_blank" download style="flex:1;">
+              <i class="fa-solid fa-download"></i> Сохранить на телефон
+            </a>
+            <button class="btn btn-secondary btn-sm" onclick="copyDlLink()"><i class="fa-regular fa-copy"></i></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 2. VIEW: UTILITIES (TOOLS TAB) -->
+    <section class="view-page" id="view-tools">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">
+          <i class="fa-solid fa-toolbox" style="color:var(--accent);"></i> Мобильные утилиты
+        </div>
+        <div class="tools-grid">
+          <div class="tool-tile" onclick="openTool('mail')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+            <div class="tool-tile-title">Временная почта</div>
+            <div class="tool-tile-desc">Одноразовый ящик для регистраций и кодов</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('pass')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div class="tool-tile-title">Генератор паролей</div>
+            <div class="tool-tile-desc">Стойкие пароли высокой энтропии</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('qr')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-qrcode"></i></div>
+            <div class="tool-tile-title">QR-генератор</div>
+            <div class="tool-tile-desc">Создание QR-кодов для ссылок и Wi-Fi</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('cleaner')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <div class="tool-tile-title">Очистка ссылок</div>
+            <div class="tool-tile-desc">Удаление UTM-меток и слежки из URL</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tool Sub-Views -->
+      <!-- Temp Mail Box -->
+      <div class="card" id="toolBox-mail" style="display:none;">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-envelope"></i> Одноразовая Почта</div>
+          <button class="btn btn-primary btn-sm" onclick="generateTempMail()"><i class="fa-solid fa-rotate"></i> Новый ящик</button>
+        </div>
+        <div class="input-wrap">
+          <input class="custom-input" id="tempMailAddr" readonly value="Нажмите «Новый ящик»" style="font-family:var(--font-mono); font-size:12px;">
+          <button class="input-paste-btn" onclick="copyTempMail()">Копировать</button>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:12px; font-weight:600; color:var(--text-muted);">Входящие письма</span>
+          <button class="btn btn-secondary btn-sm" onclick="fetchTempMessages()"><i class="fa-solid fa-arrows-rotate"></i> Проверить</button>
+        </div>
+        <div id="tempMailInbox" style="font-size:12px; color:var(--text-muted); background:var(--surface-raised); padding:10px; border-radius:var(--radius-sm);">
+          Пока нет писем. Ожидание входящих сообщений...
+        </div>
+      </div>
+
+      <!-- Password Generator -->
+      <div class="card" id="toolBox-pass" style="display:none;">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-key"></i> Генератор Паролей</div>
+          <button class="btn btn-primary btn-sm" onclick="generateNewPassword()"><i class="fa-solid fa-rotate"></i> Создать</button>
+        </div>
+        <div class="input-wrap">
+          <input class="custom-input" id="passResult" readonly style="font-family:var(--font-mono); font-weight:600; font-size:14px; letter-spacing:1px;">
+          <button class="input-paste-btn" onclick="copyPassword()">Копировать</button>
+        </div>
+        <div style="font-size:11px; color:var(--success); font-weight:600;" id="passStrength">Стойкость: Максимальная</div>
+      </div>
+
+      <!-- QR Generator -->
+      <div class="card" id="toolBox-qr" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-qrcode"></i> Генерация QR-кода</div>
+        <div class="input-wrap">
+          <input class="custom-input" id="qrTextInput" placeholder="Введите текст или ссылку для QR...">
+        </div>
+        <button class="btn btn-primary" onclick="createQRCode()" style="margin-bottom:12px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Создать QR-код</button>
+        <div id="qrPreviewWrap" style="display:none; text-align:center; padding:12px; background:var(--surface-raised); border-radius:var(--radius-sm);">
+          <img id="qrImg" src="" alt="QR" style="max-width:180px; border-radius:8px; margin-bottom:10px;">
+          <div><a id="qrDownloadLink" class="btn btn-secondary btn-sm" download="qrcode.png"><i class="fa-solid fa-download"></i> Сохранить в Галерею</a></div>
+        </div>
+      </div>
+
+      <!-- Link Cleaner -->
+      <div class="card" id="toolBox-cleaner" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Очистка ссылки от трекеров</div>
+        <div class="input-wrap">
+          <input class="custom-input" id="cleanerInput" placeholder="Вставьте ссылку с ?utm_... ?si=... ?igsh=...">
+        </div>
+        <button class="btn btn-primary" onclick="cleanTrackingUrl()"><i class="fa-solid fa-filter"></i> Очистить ссылку</button>
+        <div id="cleanerResultWrap" style="display:none; margin-top:10px;">
+          <div class="input-wrap">
+            <input class="custom-input" id="cleanedUrlResult" readonly style="font-family:var(--font-mono); font-size:12px;">
+            <button class="input-paste-btn" onclick="copyCleanedUrl()">Копировать</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 3. VIEW: AI SUMMARY -->
+    <section class="view-page" id="view-ai">
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px;">
+          <i class="fa-solid fa-brain" style="color:var(--primary);"></i> AI Выжимка (TL;DR)
+        </div>
+        <div class="card-desc">Вставьте ссылку на статью или длинный текст — AI выделит главные тезисы за 2 секунды.</div>
+        <textarea id="aiSummaryInput" class="custom-input" rows="4" placeholder="Вставьте URL статьи или текст..." style="resize:vertical; margin-bottom:12px;"></textarea>
+        <button class="btn btn-primary" onclick="generateSummary()"><i class="fa-solid fa-bolt"></i> Сделать выжимку</button>
+        <div id="aiResultBox" class="result-box">
+          <div style="font-weight:700; color:#fff; margin-bottom:8px;" id="aiSummaryTitle">Результат анализа</div>
+          <div id="aiSummaryContent" style="font-size:12px; line-height:1.6; color:#cbd5e1;"></div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- 4. VIEW: ADMIN PANEL -->
+    <section class="view-page" id="view-admin">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fa-solid fa-server" style="color:var(--warning);"></i> Статус системы & Сервера</div>
+          <button class="btn btn-secondary btn-sm" onclick="loadAdminStats()"><i class="fa-solid fa-rotate"></i></button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+          <div style="background:var(--surface-raised); padding:10px; border-radius:var(--radius-sm);">
+            <div style="font-size:11px; color:var(--text-muted);">Пользователей бота</div>
+            <div style="font-size:18px; font-weight:800; color:#fff;" id="admStatUsers">—</div>
+          </div>
+          <div style="background:var(--surface-raised); padding:10px; border-radius:var(--radius-sm);">
+            <div style="font-size:11px; color:var(--text-muted);">Свободно на сервере</div>
+            <div style="font-size:18px; font-weight:800; color:var(--success);" id="admStatDisk">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Broadcast Card -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-bullhorn" style="color:var(--primary);"></i> Массовая рассылка сообщений</div>
+        <textarea id="broadcastText" class="custom-input" rows="3" placeholder="Введите текст анонса для всех пользователей..." style="resize:vertical; margin-bottom:8px;"></textarea>
+        <button class="btn btn-primary btn-sm" onclick="sendBroadcast()"><i class="fa-solid fa-paper-plane"></i> Отправить рассылку</button>
+        <div id="broadcastStatus" style="font-size:11px; margin-top:6px; color:var(--text-muted);"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('downloader', this)">
+      <i class="fa-solid fa-cloud-arrow-down"></i>
+      <span>Скачать</span>
     </button>
-    <button class="nav-tab-btn" id="tab-downloaderView" onclick="showView('downloaderView')">
-      <i class="fa-solid fa-download"></i> Загрузчик
+    <button class="nav-item" onclick="switchTab('tools', this)">
+      <i class="fa-solid fa-toolbox"></i>
+      <span>Мультитул</span>
     </button>
-    <button class="nav-tab-btn" id="tab-multitoolView" onclick="showView('multitoolView')">
-      <i class="fa-solid fa-toolbox"></i> Утилиты
+    <button class="nav-item" onclick="switchTab('ai', this)">
+      <i class="fa-solid fa-brain"></i>
+      <span>AI Выжимка</span>
     </button>
-    <button class="nav-tab-btn" id="tab-foldersView" onclick="showView('foldersView')">
-      <i class="fa-solid fa-folder"></i> Папки <span class="nav-tab-badge" id="totalCasesBadge">0</span>
-    </button>
-    <button class="nav-tab-btn" id="tab-catalogView" onclick="showView('catalogView')">
-      <i class="fa-solid fa-layer-group"></i> Каталог
-    </button>
-    <button class="nav-tab-btn" id="tab-graphView" onclick="showView('graphView')">
-      <i class="fa-solid fa-circle-nodes"></i> Граф
-    </button>
-    <button class="nav-tab-btn" id="tab-decoderView" onclick="showView('decoderView')">
-      <i class="fa-solid fa-terminal"></i> Лаб
+    <button class="nav-item" id="navAdminTabBtn" onclick="switchTab('admin', this)" style="display:none;">
+      <i class="fa-solid fa-shield-halved"></i>
+      <span>Админка</span>
     </button>
   </nav>
 
-  <!-- ========================================================= -->
-  <!-- 1. VIEW: OMNISEARCH & TERMINAL (ПОИСК) -->
-  <!-- ========================================================= -->
-  <section class="view-page active" id="searchView">
-    
-    <!-- OmniSearch Input Box -->
-    <div class="omni-container">
-      <div class="omni-input-row">
-        <div class="omni-input-wrap">
-          <i class="fa-solid fa-magnifying-glass omni-icon"></i>
-          <input class="omni-input" id="omniInput" placeholder="Введите никнейм, телефон (+7...), email, кошелек 0x/BTC или домен..." oninput="handleOmniInput(event)" onkeydown="if(event.key==='Enter') runSmartScan()">
-          <span class="omni-type-badge" id="omniTypeBadge">Обнаружен: Ник</span>
-        </div>
-        <button class="btn btn-primary" onclick="runSmartScan()">
-          <i class="fa-solid fa-crosshairs"></i> Скан
-        </button>
-        <button class="btn btn-secondary" onclick="toggleOmniPhotoSection()" title="Прикрепить фото / Face AI">
-          <i class="fa-solid fa-camera"></i>
-        </button>
-      </div>
-
-      <!-- Photo Dropzone inside OmniSearch -->
-      <div id="omniPhotoSection" style="display:none;">
-        <input type="file" id="omniFileInput" accept="image/*" style="display:none;" onchange="handleFileSelected(event)">
-        <div class="dropzone" id="omniDropzone" onclick="document.getElementById('omniFileInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-          <i class="fa-solid fa-cloud-arrow-up" style="font-size:20px; color:var(--primary); margin-bottom:4px;"></i>
-          <div style="font-size:11px; font-weight:700; color:#fff;">Перетащите фото лица или нажмите для выбора</div>
-          <div style="font-size:9px; color:var(--text-muted); margin-top:2px;">Поддерживается вставка из буфера обмена (Ctrl + V)</div>
-        </div>
-
-        <div id="omniPhotoPreviewBox" style="display:none; background:#07090e; border:1px solid var(--primary); border-radius:var(--radius-sm); padding:8px 10px; margin-top:8px; display:flex; align-items:center; gap:10px;">
-          <img id="omniPhotoPreviewImg" src="" alt="Photo" style="width:48px; height:48px; border-radius:4px; object-fit:cover; border:1px solid var(--border);">
-          <div style="flex:1; min-width:0;">
-            <div id="omniPhotoFileName" style="font-size:11px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">photo.jpg</div>
-            <div id="omniPhotoMeta" style="font-size:9px; color:var(--text-muted);">0 KB</div>
-          </div>
-          <button class="btn btn-danger btn-sm" onclick="clearUploadedPhoto()"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </div>
-
-      <!-- Quick Launchpad -->
-      <div class="quick-launch-grid">
-        <div class="quick-chip" onclick="quickFillAndScan('ai_detective_profiler')">
-          <i class="fa-solid fa-crosshairs quick-chip-icon" style="color:var(--primary);"></i>
-          <span class="quick-chip-text">Deep Recon</span>
-        </div>
-        <div class="quick-chip" onclick="quickFillAndScan('crypto_aml_auditor')">
-          <i class="fa-solid fa-shield-halved quick-chip-icon" style="color:var(--green);"></i>
-          <span class="quick-chip-text">AML Аудит</span>
-        </div>
-        <div class="quick-chip" onclick="quickFillAndScan('face_search_ai')">
-          <i class="fa-solid fa-user-astronaut quick-chip-icon" style="color:var(--cyan);"></i>
-          <span class="quick-chip-text">Поиск по фото</span>
-        </div>
-        <div class="quick-chip" onclick="quickFillAndScan('tg_activity_tracker')">
-          <i class="fa-solid fa-clock quick-chip-icon" style="color:var(--amber);"></i>
-          <span class="quick-chip-text">Шпион онлайна</span>
-        </div>
-        <div class="quick-chip" onclick="quickFillAndScan('digital_hygiene_audit')">
-          <i class="fa-solid fa-lock-open quick-chip-icon" style="color:var(--purple);"></i>
-          <span class="quick-chip-text">Проверка утечек</span>
-        </div>
-        <div class="quick-chip" onclick="quickFillAndScan('myip_toolbox')">
-          <i class="fa-solid fa-network-wired quick-chip-icon" style="color:var(--primary);"></i>
-          <span class="quick-chip-text">MyIP & VPN</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Loading Spinner -->
-    <div class="loader" id="searchLoader">
-      <div class="spinner"></div>
-      <span style="font-size:11px; color:var(--primary);">Сквозной анализ открытых источников и реестров...</span>
-    </div>
-
-    <!-- Active Result Container -->
-    <div id="searchResultBox"></div>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 2. VIEW: INVESTIGATION FOLDERS SYSTEM (ПАПКИ) -->
-  <!-- ========================================================= -->
-  <section class="view-page" id="foldersView">
-    <div class="folder-header-bar">
-      <div>
-        <h2 style="font-size:14px; font-weight:800; color:#fff; display:flex; align-items:center; gap:6px;">
-          <i class="fa-solid fa-folder-open" style="color:var(--amber);"></i> Папки расследований
-        </h2>
-        <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">
-          Группируйте поиски по кейсам, сохраняйте досье и экспортируйте отчеты
-        </div>
-      </div>
-      <div style="display:flex; gap:6px;">
-        <button class="btn btn-secondary btn-sm" onclick="exportCurrentFolder()"><i class="fa-solid fa-file-export"></i> Экспорт</button>
-        <button class="btn btn-primary btn-sm" onclick="openNewFolderModal()"><i class="fa-solid fa-plus"></i> Новая папка</button>
-      </div>
-    </div>
-
-    <!-- Folder Navigation Pills -->
-    <div class="folder-pills-row" id="folderPillsRow"></div>
-
-    <!-- Folder Search & Info Bar -->
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px;">
-      <input class="omni-input" id="folderSearchInput" placeholder="Поиск в этой папке..." oninput="renderFolderCases()" style="padding:7px 10px; font-size:11px;">
-      <div style="font-size:10px; color:var(--text-muted); white-space:nowrap;" id="folderCasesCountLabel">0 расследований</div>
-    </div>
-
-    <!-- Folder Cases List -->
-    <div class="folder-cases-container" id="folderCasesContainer"></div>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 3. VIEW: MODULES CATALOG (КАТАЛОГ) -->
-  <!-- ========================================================= -->
-  <section class="view-page" id="catalogView">
-    <div style="margin-bottom:10px;">
-      <input class="omni-input" id="catalogSearchInput" placeholder="Фильтр по 55+ инструментам и репозиториям..." oninput="renderCatalog()" style="padding:9px 12px; font-size:12px;">
-    </div>
-
-    <div class="filter-chips">
-      <div class="chip active" onclick="setCatalogFilter('all', this)"><i class="fa-solid fa-layer-group"></i> Все (55)</div>
-      <div class="chip" onclick="setCatalogFilter('killer_monetization', this)"><i class="fa-solid fa-gem" style="color:var(--amber);"></i> AI & Топ (6)</div>
-      <div class="chip" onclick="setCatalogFilter('telegram_osint', this)"><i class="fa-brands fa-telegram" style="color:#38bdf8;"></i> Telegram (5)</div>
-      <div class="chip" onclick="setCatalogFilter('username_osint', this)"><i class="fa-solid fa-user-tag" style="color:#a855f7;"></i> Никнеймы (5)</div>
-      <div class="chip" onclick="setCatalogFilter('social_google_instagram', this)"><i class="fa-brands fa-instagram" style="color:#ec4899;"></i> Соцсети (7)</div>
-      <div class="chip" onclick="setCatalogFilter('web_infra_secrets', this)"><i class="fa-solid fa-globe" style="color:#38bdf8;"></i> Домены, IP & MyIP (10)</div>
-      <div class="chip" onclick="setCatalogFilter('email_checks', this)"><i class="fa-solid fa-envelope" style="color:#10b981;"></i> Почта & Телефон (3)</div>
-      <div class="chip" onclick="setCatalogFilter('hacker_crypto_git', this)"><i class="fa-solid fa-coins" style="color:#eab308;"></i> Крипта & GitHub (3)</div>
-      <div class="chip" onclick="setCatalogFilter('amazing_osint', this)"><i class="fa-solid fa-earth-americas" style="color:#10b981;"></i> Фото & GeoINT (11)</div>
-      <div class="chip" onclick="setCatalogFilter('cyber_tools_lab', this)"><i class="fa-solid fa-wand-magic-sparkles" style="color:#f59e0b;"></i> Декодеры (5)</div>
-    </div>
-
-    <div id="catalogCardsContainer"></div>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 4. VIEW: VIS.JS GRAPH (ГРАФ СВЯЗЕЙ) -->
-  <!-- ========================================================= -->
-  <section class="view-page" id="graphView">
-    <div class="result-card">
-      <div class="result-header-toolbar">
-        <div class="result-title"><i class="fa-solid fa-circle-nodes" style="color:var(--primary);"></i> Интерактивный Граф Связей</div>
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-secondary btn-sm" onclick="exportCurrentGraph()"><i class="fa-solid fa-camera"></i> PNG</button>
-          <button class="btn btn-secondary btn-sm" onclick="clearGraph()"><i class="fa-solid fa-rotate-left"></i> Сброс</button>
-        </div>
-      </div>
-      <div style="display:flex; gap:6px; margin-bottom:10px;">
-        <input class="omni-input" id="graphTargetInput" placeholder="Введите цель для построения графа..." onkeydown="if(event.key==='Enter') runGraphDirectScan()">
-        <button class="btn btn-primary" onclick="runGraphDirectScan()"><i class="fa-solid fa-bolt"></i> Построить</button>
-      </div>
-      <div id="visNetworkCanvas" style="width:100%; height:400px; background:#04060a; border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:10px;"></div>
-      <div id="graphDossierBox" style="display:none;" class="stat-box">
-        <div style="font-size:10px; font-weight:800; color:var(--primary); margin-bottom:4px;"><i class="fa-solid fa-file-shield"></i> Тактическая сводка связей:</div>
-        <div id="graphDossierContent" style="font-size:11px; color:#cbd5e1; white-space:pre-wrap; line-height:1.5;"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 5. VIEW: CYBER LAB & DECODERS (ЛАБОРАТОРИЯ) -->
-  <!-- ========================================================= -->
-  <section class="view-page" id="decoderView">
-    <div class="result-card">
-      <div class="result-title" style="margin-bottom:10px;"><i class="fa-solid fa-wrench" style="color:var(--cyan);"></i> Кибер-Декодеры & Хеш-Идентификаторы</div>
-      <textarea class="omni-input" id="decoderInputData" placeholder="Вставьте зашифрованную строку, хеш (MD5/SHA/bcrypt) или JWT..." style="width:100%; height:75px; resize:vertical; margin-bottom:8px; font-family:var(--font-mono);"></textarea>
-
-      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px;">
-        <button class="btn btn-primary btn-sm" onclick="runDecoderAction('hash_id')"><i class="fa-solid fa-fingerprint"></i> Хеш-ID</button>
-        <button class="btn btn-secondary btn-sm" onclick="runDecoderAction('jwt_decode')"><i class="fa-solid fa-shield-halved"></i> JWT Token</button>
-        <button class="btn btn-secondary btn-sm" onclick="runDecoderAction('base64_decode')">Base64 Decode</button>
-        <button class="btn btn-secondary btn-sm" onclick="runDecoderAction('base64_encode')">Base64 Encode</button>
-        <button class="btn btn-secondary btn-sm" onclick="runDecoderAction('hex_decode')">Hex Decode</button>
-        <button class="btn btn-secondary btn-sm" onclick="runDecoderAction('rot13')">ROT13</button>
-      </div>
-
-      <div id="decoderResultBox" style="display:none;" class="stat-box">
-        <div style="font-size:10px; font-weight:800; color:var(--primary); margin-bottom:4px;">Результат декодирования:</div>
-        <pre id="decoderOutputPre" style="font-family:var(--font-mono); color:var(--primary); font-size:11px; white-space:pre-wrap; word-break:break-all; max-height:220px; overflow-y:auto;"></pre>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 6. VIEW: MEDIA DOWNLOADER (ЗАГРУЗЧИК БЕЗ ВОДЯНЫХ ЗНАКОВ) -->
-  <!-- ========================================================= -->
-  <section class="view-page" id="downloaderView">
-    <div class="result-card">
-      <div class="result-title" style="margin-bottom:8px;">
-        <i class="fa-solid fa-cloud-arrow-down" style="color:var(--primary);"></i> Мульти-Загрузчик Медиа
-      </div>
-      <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
-        Скачивание видео и аудио без водяных знаков из TikTok, Instagram Reels, YouTube Shorts, Twitter/X, Pinterest и Reddit.
-      </p>
-
-      <div class="omni-input-row" style="margin-bottom:10px;">
-        <div class="omni-input-wrap">
-          <i class="fa-solid fa-link omni-icon"></i>
-          <input class="omni-input" id="dlInputUrl" placeholder="Вставьте ссылку на TikTok, Instagram, YouTube..." onkeydown="if(event.key==='Enter') executeMediaDownload(false)">
-        </div>
-      </div>
-
-      <div style="display:flex; gap:8px; margin-bottom:14px;">
-        <button class="btn btn-primary" onclick="executeMediaDownload(false)" id="dlVideoBtn">
-          <i class="fa-solid fa-film"></i> Скачать Видео MP4
-        </button>
-        <button class="btn btn-secondary" onclick="executeMediaDownload(true)" id="dlAudioBtn">
-          <i class="fa-solid fa-music"></i> Только Аудио MP3
-        </button>
-      </div>
-
-      <!-- Live status / Spinner -->
-      <div id="dlStatusBox" style="display:none; padding:12px; border-radius:var(--radius-md); background:var(--surface-raised); border:1px solid var(--border); font-size:12px; margin-bottom:12px;">
-        <i class="fa-solid fa-spinner fa-spin" style="color:var(--primary); margin-right:6px;"></i> <span id="dlStatusText">Подготовка...</span>
-      </div>
-
-      <!-- Result Card -->
-      <div id="dlResultBox" style="display:none;" class="stat-box">
-        <div style="font-size:12px; font-weight:800; color:var(--primary); margin-bottom:6px;" id="dlResultTitle">Медиа готово</div>
-        <div style="font-size:11px; color:var(--text-muted); margin-bottom:10px;" id="dlResultMeta"></div>
-        <div style="display:flex; gap:8px;">
-          <a class="btn btn-primary btn-sm" id="dlDownloadLink" href="#" target="_blank"><i class="fa-solid fa-download"></i> Сохранить на устройство</a>
-          <button class="btn btn-secondary btn-sm" onclick="copyDlLink()"><i class="fa-regular fa-copy"></i> Копировать ссылку</button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 7. VIEW: MULTITOOL UTILITIES (УТИЛИТЫ И БЕЗОПАСНОСТЬ) -->
-  <!-- ========================================================= -->
-  <section class="view-page" id="multitoolView">
-    
-    <!-- 1. ВРЕМЕННАЯ ПОЧТА -->
-    <div class="result-card" style="margin-bottom:12px;">
-      <div class="result-header-toolbar">
-        <div class="result-title"><i class="fa-solid fa-envelope-open-text" style="color:var(--primary);"></i> Одноразовая Временная Почта</div>
-        <button class="btn btn-primary btn-sm" onclick="initTempMailBox()"><i class="fa-solid fa-plus"></i> Новый ящик</button>
-      </div>
-      <p style="font-size:11px; color:var(--text-muted); margin-bottom:10px;">
-        Безопасный ящик для регистраций и получения кодов подтверждения без спама.
-      </p>
-
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;" id="tempMailBoxRow">
-        <input class="omni-input" id="tempMailAddressInput" readonly value="Нажмите «Новый ящик» для создания" style="font-family:var(--font-mono); font-size:12px;">
-        <button class="btn btn-secondary" onclick="copyTempMail()"><i class="fa-regular fa-copy"></i></button>
-        <button class="btn btn-secondary" onclick="checkTempMailMessages()"><i class="fa-solid fa-arrows-rotate"></i></button>
-      </div>
-
-      <div id="tempMailMessagesList" style="font-size:11px;">
-        <div style="color:var(--text-muted); padding:8px 0;">Нажмите кнопку проверки для чтения входящих писем.</div>
-      </div>
-    </div>
-
-    <!-- 2. ГЕНЕРАТОР ПАРОЛЕЙ -->
-    <div class="result-card" style="margin-bottom:12px;">
-      <div class="result-title" style="margin-bottom:8px;"><i class="fa-solid fa-key" style="color:var(--amber);"></i> Генератор Криптостойких Паролей</div>
-      <div style="display:flex; gap:8px; align-items:center; margin-bottom:10px;">
-        <input class="omni-input" id="pwdOutputInput" readonly value="" style="font-family:var(--font-mono); font-size:13px; font-weight:700; color:var(--primary);">
-        <button class="btn btn-primary" onclick="copyGeneratedPwd()"><i class="fa-regular fa-copy"></i></button>
-        <button class="btn btn-secondary" onclick="generateNewPassword()"><i class="fa-solid fa-dice"></i></button>
-      </div>
-      <div style="display:flex; justify-content:space-between; align-items:center; font-size:11px; color:var(--text-muted);">
-        <span>Длина: <b id="pwdLenLabel" style="color:#fff;">16</b> симв.</span>
-        <input type="range" min="8" max="48" value="16" id="pwdLengthRange" oninput="document.getElementById('pwdLenLabel').innerText=this.value; generateNewPassword();" style="width:160px; accent-color:var(--primary);">
-        <span id="pwdEntropyBadge" style="font-weight:700; color:var(--primary);">96 бит (Военный класс)</span>
-      </div>
-    </div>
-
-    <!-- 3. WEB PROBE & SSL -->
-    <div class="result-card" style="margin-bottom:12px;">
-      <div class="result-title" style="margin-bottom:8px;"><i class="fa-solid fa-globe" style="color:var(--cyan);"></i> Web Probe & Проверка SSL-сертификата</div>
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <input class="omni-input" id="webProbeInput" placeholder="Введите домен (например google.com)..." onkeydown="if(event.key==='Enter') executeWebProbe()">
-        <button class="btn btn-primary" onclick="executeWebProbe()"><i class="fa-solid fa-bolt"></i> Тест</button>
-      </div>
-      <div id="webProbeResultBox" style="display:none;" class="stat-box">
-        <pre id="webProbeOutputPre" style="font-family:var(--font-mono); font-size:11px; color:var(--text); white-space:pre-wrap; margin:0;"></pre>
-      </div>
-    </div>
-
-    <!-- 4. QR-КОД ГЕНЕРАТОР -->
-    <div class="result-card">
-      <div class="result-title" style="margin-bottom:8px;"><i class="fa-solid fa-qrcode" style="color:#fff;"></i> Генератор QR-Кодов</div>
-      <div style="display:flex; gap:8px; margin-bottom:10px;">
-        <input class="omni-input" id="qrInputData" placeholder="Текст или ссылка для QR..." onkeydown="if(event.key==='Enter') generateQRCode()">
-        <button class="btn btn-primary" onclick="generateQRCode()"><i class="fa-solid fa-wand-magic-sparkles"></i> Создать</button>
-      </div>
-      <div id="qrResultBox" style="display:none; text-align:center; padding:12px; background:#000; border-radius:var(--radius-md); border:1px solid var(--border);">
-        <img id="qrResultImg" style="width:180px; height:180px; border-radius:8px; background:#fff; padding:6px; display:inline-block; margin-bottom:8px;">
-        <div>
-          <a id="qrDownloadBtn" class="btn btn-secondary btn-sm" download="qrcode.png"><i class="fa-solid fa-download"></i> Скачать PNG</a>
-        </div>
-      </div>
-    </div>
-
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 8. VIEW: ADMIN CENTER (АДМИНКА) -->
-  <!-- ========================================================= -->
-  <section class="view-page" id="adminView">
-    <!-- 0. ADMIN TELEMETRY & STATS -->
-    <div class="result-card" style="margin-bottom:12px;">
-      <div class="result-header-toolbar">
-        <div class="result-title"><i class="fa-solid fa-server" style="color:var(--primary);"></i> Статус системы & Сервера</div>
-        <button class="btn btn-secondary btn-sm" onclick="loadAdminSystemStats()"><i class="fa-solid fa-rotate"></i></button>
-      </div>
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-top:8px;">
-        <div class="stat-box" style="padding:10px;">
-          <div style="font-size:10px; color:var(--text-muted);">Пользователей</div>
-          <div style="font-size:16px; font-weight:800; color:#fff;" id="admStatUsers">—</div>
-        </div>
-        <div class="stat-box" style="padding:10px;">
-          <div style="font-size:10px; color:var(--text-muted);">VIP Агентов</div>
-          <div style="font-size:16px; font-weight:800; color:var(--amber);" id="admStatVip">—</div>
-        </div>
-        <div class="stat-box" style="padding:10px;">
-          <div style="font-size:10px; color:var(--text-muted);">Всего сканов</div>
-          <div style="font-size:16px; font-weight:800; color:var(--primary);" id="admStatScans">—</div>
-        </div>
-        <div class="stat-box" style="padding:10px;">
-          <div style="font-size:10px; color:var(--text-muted);">Своб. диск</div>
-          <div style="font-size:16px; font-weight:800; color:#10b981;" id="admStatDisk">—</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 0.1 BROADCAST NOTIFICATIONS -->
-    <div class="result-card" style="margin-bottom:12px;">
-      <div class="result-header-toolbar">
-        <div class="result-title"><i class="fa-solid fa-bullhorn" style="color:var(--primary);"></i> Рассылка уведомлений пользователям</div>
-      </div>
-      <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">
-        Отправка сообщения или анонса обновления всем зарегистрированным пользователям бота.
-      </p>
-      <textarea id="admBroadcastText" class="omni-input" rows="3" placeholder="Введите текст рассылки (поддерживается HTML)..." style="width:100%; margin-bottom:8px; resize:vertical;"></textarea>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
-        <input id="admBroadcastBtnText" class="omni-input" placeholder="Текст кнопки (опционально, напр. Открыть)">
-        <input id="admBroadcastBtnUrl" class="omni-input" placeholder="Ссылка кнопки (напр. https://...)">
-      </div>
-      <button class="btn btn-primary btn-sm" onclick="submitAdminBroadcast()"><i class="fa-solid fa-paper-plane"></i> Отправить всем пользователям</button>
-      <div id="admBroadcastStatus" style="font-size:11px; margin-top:6px; color:var(--text-muted);"></div>
-    </div>
-
-    <div class="result-card">
-      <div class="result-header-toolbar">
-        <div class="result-title"><i class="fa-solid fa-users-gear" style="color:var(--amber);"></i> Управление пользователями & Квоты</div>
-        <button class="btn btn-primary btn-sm" onclick="toggleAddUserModal()"><i class="fa-solid fa-plus"></i> Добавить</button>
-      </div>
-
-      <div id="addUserFormBox" style="display:none; background:#07090e; padding:10px; border-radius:var(--radius-sm); margin-bottom:10px; border:1px solid var(--border);">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
-          <input class="omni-input" id="newUsername" placeholder="Позывной / Ник">
-          <input class="omni-input" id="newNotes" placeholder="Telegram ID">
-        </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
-          <select class="omni-input" id="newRole">
-            <option value="user">User (Обычный)</option>
-            <option value="vip">VIP (Бесконечный)</option>
-            <option value="admin">Admin</option>
-          </select>
-          <input class="omni-input" id="newPassword" type="password" placeholder="Пароль">
-        </div>
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-primary btn-sm" onclick="submitCreateUser()">Создать</button>
-          <button class="btn btn-secondary btn-sm" onclick="toggleAddUserModal()">Отмена</button>
-        </div>
-      </div>
-
-      <div style="overflow-x:auto;">
-        <table class="admin-table">
-          <thead>
-            <tr><th>Позывной</th><th>Telegram</th><th>Квота</th><th>Статус</th><th>Действия</th></tr>
-          </thead>
-          <tbody id="usersTableBody">
-            <tr><td colspan="5" style="text-align:center;">Загрузка...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="result-card">
-      <div class="result-header-toolbar">
-        <div class="result-title"><i class="fa-solid fa-network-wired" style="color:var(--primary);"></i> Журнал IP-визитов</div>
-        <button class="btn btn-secondary btn-sm" onclick="loadAdminVisitors()"><i class="fa-solid fa-rotate"></i></button>
-      </div>
-      <div style="overflow-x:auto;">
-        <table class="admin-table">
-          <thead>
-            <tr><th>Время</th><th>Пользователь</th><th>IP адрес</th><th>Гео</th></tr>
-          </thead>
-          <tbody id="visitorsTableBody">
-            <tr><td colspan="4" style="text-align:center;">Загрузка...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-</div>
-
-<!-- ========================================================= -->
-<!-- MODAL: СОХРАНЕНИЕ В ПАПКУ (SAVE TO FOLDER) -->
-<!-- ========================================================= -->
-<div class="modal-overlay" id="saveCaseModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fa-solid fa-folder-plus" style="color:var(--amber);"></i> Сохранить в папку</div>
-      <button onclick="closeSaveCaseModal()" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer;">&times;</button>
-    </div>
-    <div style="font-size:11px; color:#cbd5e1; margin-bottom:12px;">
-      Выберите папку для прикрепления результатов расследования цели <b id="modalSaveTarget" style="color:#fff;"></b>:
-    </div>
-    <div style="margin-bottom:10px;">
-      <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:3px;">ПАПКА РАССЛЕДОВАНИЯ</label>
-      <select class="omni-input" id="modalFolderSelect" style="width:100%;"></select>
-    </div>
-    <div style="margin-bottom:12px;">
-      <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:3px;">ЗАМЕТКА РАССЛЕДОВАТЕЛЯ (ОПЦИОНАЛЬНО)</label>
-      <input class="omni-input" id="modalCaseNotes" placeholder="Например: Подозрительный кошелек, возможный дроп...">
-    </div>
-    <div style="display:flex; justify-content:flex-end; gap:6px;">
-      <button class="btn btn-secondary btn-sm" onclick="closeSaveCaseModal()">Отмена</button>
-      <button class="btn btn-primary btn-sm" onclick="commitSaveCase()"><i class="fa-solid fa-check"></i> Сохранить</button>
-    </div>
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">
+    <i class="fa-solid fa-check" style="color:var(--success);"></i>
+    <span id="toastText">Готово</span>
   </div>
-</div>
 
-<!-- MODAL: СОЗДАНИЕ НОВОЙ ПАПКИ -->
-<div class="modal-overlay" id="newFolderModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fa-solid fa-folder-plus" style="color:var(--primary);"></i> Новая папка поиска</div>
-      <button onclick="closeNewFolderModal()" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer;">&times;</button>
-    </div>
-    <div style="margin-bottom:12px;">
-      <label style="font-size:10px; color:var(--text-muted); display:block; margin-bottom:3px;">НАЗВАНИЕ ПАПКИ</label>
-      <input class="omni-input" id="newFolderNameInput" placeholder="Например: Дело №42: Проверка контрагента">
-    </div>
-    <div style="display:flex; justify-content:flex-end; gap:6px;">
-      <button class="btn btn-secondary btn-sm" onclick="closeNewFolderModal()">Отмена</button>
-      <button class="btn btn-primary btn-sm" onclick="commitCreateFolder()"><i class="fa-solid fa-check"></i> Создать папку</button>
-    </div>
-  </div>
-</div>
+  <script>
+    const API_BASE = (window.location.protocol === 'file:' || window.location.hostname === '') ? '' : '';
+    let currentLastDlUrl = '';
+    let currentTempMailToken = '';
 
-<!-- MODAL: STARS TOPUP -->
-<div class="modal-overlay" id="starsModal">
-  <div class="modal-box">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fa-solid fa-star" style="color:var(--amber);"></i> Пополнение Stars</div>
-      <button onclick="closeStarsModal()" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer;">&times;</button>
-    </div>
-    <div style="font-size:11px; color:#cbd5e1; margin-bottom:12px;">
-      Каждому новому агенту предоставляется <b>5 бесплатных проверок</b>.<br>Для продолжения работы выберите пакет:
-    </div>
-    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:12px;">
-      <div onclick="buyStarsPkg('pkg_20')" style="background:#07090e; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-        <div><div style="font-size:11px; font-weight:800; color:#fff;">🌟 20 OSINT Запросов</div><div style="font-size:9px; color:var(--text-muted);">Тариф «Разведчик»</div></div>
-        <button class="btn btn-yellow btn-sm">35 ⭐️</button>
-      </div>
-      <div onclick="buyStarsPkg('pkg_50')" style="background:#07090e; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-        <div><div style="font-size:11px; font-weight:800; color:#fff;">🌟 50 OSINT Запросов</div><div style="font-size:9px; color:var(--text-muted);">Тариф «Оперативник»</div></div>
-        <button class="btn btn-yellow btn-sm">88 ⭐️</button>
-      </div>
-      <div onclick="buyStarsPkg('pkg_100')" style="background:#07090e; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px; display:flex; justify-content:space-between; align-items:center; cursor:pointer;">
-        <div><div style="font-size:11px; font-weight:800; color:#fff;">🌟 100 OSINT Запросов</div><div style="font-size:9px; color:var(--text-muted);">Тариф «Архимаг»</div></div>
-        <button class="btn btn-yellow btn-sm">235 ⭐️</button>
-      </div>
-    </div>
-    <button class="btn btn-secondary btn-sm" style="width:100%; justify-content:center;" onclick="closeStarsModal()">Закрыть</button>
-  </div>
-</div>
-
-<!-- TOAST NOTIFICATION -->
-<div class="toast-msg" id="appToast"><i class="fa-solid fa-check"></i> <span id="toastText">Успешно</span></div>
-
-<script>
-// =====================================================================
-// --- INITIAL DATA & CATALOG ---
-// =====================================================================
-let FULL_CATALOG = [
-  {
-    "desc": "Самые мощные модули глубокой сетевой разведки, трекер сна и активности, проверка чистоты крипты и биометрия.",
-    "id": "killer_monetization",
-    "title": "💎 Deep Recon, Шпион онлайна & AML-Аудит",
-    "tools": [
-      {
-        "id": "ai_detective_profiler",
-        "input": "никнейм, имя или ссылка (например, durov)",
-        "install_guide": {
-          "docker": "# Работает автономно в WebApp",
-          "git": "# Встроенный в систему аналитический модуль",
-          "notes": "Сквозной сбор по 480+ платформам, репозиториям и открытым реестрам.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите никнейм человека для генерации полного технического досье"
-        },
-        "launch": {
-          "action": "scan_ai_profiler",
-          "label": "⚡ Сформировать Сквозное Досье",
-          "type": "api"
-        },
-        "name": "🔍 Deep Recon: Сквозной сбор цифрового следа и профилей",
-        "purpose": "🎯 Выполняет сквозную корреляцию по 480+ реестрам, репозиториям кода и социальным сетям, извлекая подтвержденные контакты, имена и цифровые следы цели.",
-        "repo": "https://github.com/sherlock-project/sherlock",
-        "scan_type": "ai_profiler",
-        "web_runnable": true,
-        "web_url": ""
-      },
-      {
-        "id": "tg_activity_tracker",
-        "input": "@username (или два @user1, @user2 для поиска тайной связи)",
-        "install_guide": {
-          "docker": "# Встроенный сервис",
-          "git": "# Анализатор активности и временных меток",
-          "notes": "Помогает узнать реальный режим дня человека и часовой пояс.",
-          "pip_or_pkg": "pip install httpx asyncio",
-          "usage": "Введите один юзернейм или два через запятую для проверки тайной связи"
-        },
-        "launch": {
-          "action": "scan_activity_tracker",
-          "label": "⚡ Узнать график сна и онлайна",
-          "type": "api"
-        },
-        "name": "⏱️ Шпион онлайна и сна в Telegram (Трекер активности)",
-        "purpose": "📊 Показывает суточный график активности человека в Telegram: когда он просыпается, когда ложится спать и в какие часы сидит в сети. Функция сравнения выявляет тайное общение двух людей, если они заходят онлайн одновременно.",
-        "repo": "https://github.com/TelegramDB/TelegramDB",
-        "scan_type": "activity_tracker",
-        "web_runnable": true,
-        "web_url": ""
-      },
-      {
-        "id": "crypto_aml_auditor",
-        "input": "адрес кошелька (BTC, ETH, USDT TRC-20, SOL)",
-        "install_guide": {
-          "docker": "# Встроенный сервис",
-          "git": "# Модуль проверки чистоты транзакций",
-          "notes": "Помогает избежать блокировки счета на биржах Binance, Bybit и других.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите адрес кошелька перед приемом оплаты или переводом"
-        },
-        "launch": {
-          "action": "scan_crypto_aml",
-          "label": "⚡ Проверить чистоту кошелька",
-          "type": "api"
-        },
-        "name": "🚨 Проверка криптокошелька на чистоту и мошенников (AML Риск)",
-        "purpose": "🛡️ Проверяет адреса USDT, Bitcoin, Ethereum и Solana на связь с кражами, даркнетом, миксерами и санкциями. Показывает шкалу риска (0-100%), чтобы ваши деньги не заблокировали на бирже.",
-        "repo": "https://github.com/bitcoin/bitcoin",
-        "scan_type": "crypto_aml",
-        "web_runnable": true,
-        "web_url": "https://blockchair.com/"
-      },
-      {
-        "id": "face_search_ai",
-        "input": "загрузите фото лица (JPG / PNG / WebP)",
-        "install_guide": {
-          "docker": "# Встроенный в WebApp",
-          "git": "# Нейросетевой модуль биометрического анализа",
-          "notes": "Помогает разоблачить мошенников на сайтах знакомств и в Telegram.",
-          "pip_or_pkg": "pip install Pillow numpy",
-          "usage": "Загрузите фото для поиска совпадений и выявления фейковых аватарок"
-        },
-        "launch": {
-          "action": "scan_face_search",
-          "label": "⚡ Найти по фото и проверить Deepfake",
-          "type": "api"
-        },
-        "name": "👤 Поиск человека по фото лица и проверка на фейк (Face AI)",
-        "purpose": "🔍 Находит одинаковые и похожие лица среди аватарок в соцсетях и Telegram, а также мгновенно распознает, сгенерировано ли фото нейросетью (Deepfake / не существует ли такого человека в реальности).",
-        "repo": "https://github.com/ageitgey/face_recognition",
-        "scan_type": "face_search",
-        "web_runnable": true,
-        "web_url": ""
-      },
-      {
-        "id": "digital_hygiene_audit",
-        "input": "ваша почта, телефон или никнейм",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "# Модуль проверки собственной безопасности",
-          "notes": "Формирует понятный чек-лист действий для защиты своих аккаунтов.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите свою почту или номер для проверки наличия в базах утечек"
-        },
-        "launch": {
-          "action": "scan_breach_audit",
-          "label": "⚡ Проверить свои утечки",
-          "type": "api"
-        },
-        "name": "🛡️ Проверка утечек своих данных (Аудит цифровой безопасности)",
-        "purpose": "🔐 Проверяет вашу личную почту, телефон или никнейм по базам утекших паролей. Показывает, где именно утекли ваши данные, насколько уязвим аккаунт, и дает понятные советы по защите.",
-        "repo": "https://github.com/sherlock-project/sherlock",
-        "scan_type": "breach_audit",
-        "web_runnable": true,
-        "web_url": ""
-      },
-      {
-        "id": "target_monitor_alerts",
-        "input": "@username, ссылка на канал или адрес кошелька",
-        "install_guide": {
-          "docker": "# Работает в фоновом режиме",
-          "git": "# Фоновый робот мониторинга целей",
-          "notes": "Уведомления приходят прямо в личные сообщения Telegram-бота.",
-          "pip_or_pkg": "pip install aiogram httpx",
-          "usage": "Укажите цель для добавления в список постоянного наблюдения"
-        },
-        "launch": {
-          "action": "subscribe_target_alerts",
-          "label": "⚡ Включить слежку",
-          "type": "api"
-        },
-        "name": "🔔 Умная слежка и уведомления в Telegram (Target Monitor)",
-        "purpose": "📡 Ставит нужный профиль Telegram, канал или криптокошелек на круглосуточное наблюдение. Как только цель сменит фото, описание, никнейм или переведет криптовалюту — бот сразу пришлет вам сообщение.",
-        "repo": "https://github.com/TelegramDB/TelegramDB",
-        "scan_type": "target_alerts",
-        "web_runnable": true,
-        "web_url": ""
+    // Telegram Mini App Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
       }
-    ]
-  },
-  {
-    "desc": "Инструменты для проверки Telegram аккаунтов, каналов, поиска реальных владельцев фейков и истории изменений.",
-    "id": "telegram_osint",
-    "title": "✈️ Telegram Разведка & Анализ профилей",
-    "tools": [
-      {
-        "id": "sockpuppet_attribution",
-        "input": "юзернейм (@username) или Telegram ID фейка",
-        "install_guide": {
-          "docker": "# Встроен в WebApp",
-          "git": "# Аналитический движок поиска связей",
-          "notes": "Помогает понять, кто на самом деле стоит за анонимным профилем.",
-          "pip_or_pkg": "pip install httpx beautifulsoup4",
-          "usage": "Введите юзернейм подозрительного аккаунта для поиска основы"
-        },
-        "launch": {
-          "action": "scan_attribution",
-          "label": "⚡ Найти основу фейка",
-          "type": "api"
-        },
-        "name": "🕵️ Поиск реального владельца фейка / вирта в Telegram (Attribution)",
-        "purpose": "🎯 Определяет основной (реальный) аккаунт человека, если он пишет с подставного, второго или купленного профиля Telegram, сопоставляя историю никнеймов, ID и цифровые следы.",
-        "repo": "https://github.com/sherlock-project/sherlock",
-        "scan_type": "attribution",
-        "web_runnable": true,
-        "web_url": "https://t.me/"
-      },
-      {
-        "id": "tg_inspector",
-        "input": "юзернейм (например, @durov) или Telegram ID",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный веб-сканер Telegram",
-          "notes": "Позволяет быстро получить публичные данные без авторизации.",
-          "pip_or_pkg": "pip install httpx beautifulsoup4",
-          "usage": "Введите юзернейм аккаунта в поле выше"
-        },
-        "launch": {
-          "action": "scan_telegram",
-          "label": "⚡ Проверить профиль Telegram",
-          "type": "api"
-        },
-        "name": "🔍 Досье на Telegram профиль и дата создания (TG Inspector)",
-        "purpose": "🔎 Мгновенно показывает открытые данные любого пользователя или канала: настоящее имя, Bio, аватарку в высоком качестве, статус бота и примерный год создания аккаунта по его ID.",
-        "repo": "https://github.com/TelegramDB/TelegramDB",
-        "scan_type": "telegram",
-        "web_runnable": true,
-        "web_url": "https://t.me/"
-      },
-      {
-        "id": "telepathy",
-        "input": "ссылка на Telegram канал или чат",
-        "install_guide": {
-          "docker": "docker run -it telepathy-osint",
-          "git": "git clone https://github.com/jordanwildon/Telepathy.git",
-          "notes": "Позволяет исследовать структуру и аудиторию публичных сообществ.",
-          "pip_or_pkg": "pip3 install telepathy-osint",
-          "usage": "telepathy -t @target_channel --export csv"
-        },
-        "launch": {
-          "href": "https://github.com/jordanwildon/Telepathy",
-          "label": "📖 Открыть Telepathy на GitHub",
-          "type": "url"
-        },
-        "name": "📊 Анализатор Telegram каналов и чатов (Telepathy)",
-        "purpose": "📈 Выгружает списки участников групп, карту пересылок постов, историю упоминаний и показывает, с какими другими каналами связан исследуемый ресурс.",
-        "repo": "https://github.com/jordanwildon/Telepathy",
-        "web_runnable": false,
-        "web_url": "https://github.com/jordanwildon/Telepathy"
-      },
-      {
-        "id": "telegramdb",
-        "input": "ключевое слово, фраза или никнейм",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "# Общедоступный веб-сервис",
-          "notes": "Помогает найти скрытые тематические группы и сообщества.",
-          "pip_or_pkg": "# Доступен через онлайн-интерфейс",
-          "usage": "Открыть сайт https://telegramdb.org/ и ввести слово для поиска"
-        },
-        "launch": {
-          "href": "https://telegramdb.org/",
-          "label": "🌐 Открыть TelegramDB Онлайн",
-          "type": "url"
-        },
-        "name": "🌐 Глобальный поисковик по чатам и сообщениям (TelegramDB)",
-        "purpose": "🔎 Ищет публичные группы, каналы и сообщения по любым ключевым словам, фразам или темам во всемирной базе Telegram.",
-        "repo": "https://github.com/TelegramDB/TelegramDB",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://telegramdb.org/"
-      },
-      {
-        "id": "tgstat",
-        "input": "юзернейм канала (например, @breakingmash)",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "# Официальный аналитический портал",
-          "notes": "Самый подробный каталог статистики каналов в СНГ.",
-          "pip_or_pkg": "# Открытый веб-сервис",
-          "usage": "Открыть сайт https://tgstat.ru/ и ввести @канал"
-        },
-        "launch": {
-          "href": "https://tgstat.ru/",
-          "label": "🌐 Открыть TGStat Онлайн",
-          "type": "url"
-        },
-        "name": "📈 Аналитика и история Telegram каналов (TGStat)",
-        "purpose": "📊 Показывает полную статистику любого канала: реальный прирост подписчиков, охваты постов, историю смены названий и удаленные публикации.",
-        "repo": "https://tgstat.ru/",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://tgstat.ru/"
-      }
-    ]
-  },
-  {
-    "desc": "Необычные методы разведки: определение времени съемки по тени солнца, просмотр старых удаленных страниц и спутниковые снимки.",
-    "id": "amazing_osint",
-    "title": "🌟 GeoINT, Спутники & Фото-детектив",
-    "tools": [
-      {
-        "id": "suncalc",
-        "input": "город, координаты или дата съемки",
-        "install_guide": {
-          "docker": "# Работает в браузере",
-          "git": "git clone https://github.com/mourner/suncalc.git",
-          "notes": "Ключевой инструмент международных расследователей для проверки подлинности фото.",
-          "pip_or_pkg": "npm install suncalc",
-          "usage": "Открыть сайт https://suncalc.org, указать точку на карте и сопоставить тень со снимка"
-        },
-        "launch": {
-          "href": "https://suncalc.org/",
-          "label": "🌐 Открыть SunCalc Онлайн",
-          "type": "url"
-        },
-        "name": "☀️ Определение времени съемки по тени солнца (SunCalc)",
-        "purpose": "🕒 Позволяет узнать точное время и дату, когда была сделана фотография на улице, рассчитывая положение солнца и направление тени от зданий и предметов.",
-        "repo": "https://github.com/mourner/suncalc",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://suncalc.org/"
-      },
-      {
-        "id": "wayback",
-        "input": "ссылка на сайт или профиль (например, twitter.com/user)",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "# Официальный архив интернета",
-          "notes": "Позволяет восстановить удаленный аккаунт или старые аватарки и контакты.",
-          "pip_or_pkg": "pip install waybackpy",
-          "usage": "Ввести ссылку на страницу для просмотра ее копий за прошлые годы"
-        },
-        "launch": {
-          "href": "https://web.archive.org/",
-          "label": "🌐 Открыть Wayback Machine",
-          "type": "url"
-        },
-        "name": "🏛️ Машина времени сайтов: просмотр удаленного (Wayback Machine)",
-        "purpose": "⏳ Показывает, как выглядел любой сайт, страница или профиль в соцсетях в прошлом. Позволяет прочитать удаленные посты, старые контакты и сохраненные копии страниц с 1996 года.",
-        "repo": "https://github.com/internetarchive/wayback",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://web.archive.org/"
-      },
-      {
-        "id": "overpass_turbo",
-        "input": "детали местности или фильтры карты",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "git clone https://github.com/tyrasd/overpass-turbo.git",
-          "notes": "Позволяет отыскать точные координаты места съемки по элементам пейзажа.",
-          "pip_or_pkg": "# Онлайн песочница",
-          "usage": "Открыть сайт https://overpass-turbo.eu/ и запустить фильтрацию по элементам карты"
-        },
-        "launch": {
-          "href": "https://overpass-turbo.eu/",
-          "label": "🌐 Открыть Overpass Turbo",
-          "type": "url"
-        },
-        "name": "📍 Поиск места по деталям на карте (Overpass Turbo)",
-        "purpose": "🗺️ Находит точные координаты локации по обрывкам деталей: например, если на фото видно трамвайные пути рядом с кирпичной башней и аптекой.",
-        "repo": "https://github.com/tyrasd/overpass-turbo",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://overpass-turbo.eu/"
-      },
-      {
-        "id": "zoom_earth",
-        "input": "город или координаты",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "# Спутниковая платформа",
-          "notes": "Позволяет увидеть актуальное состояние местности из космоса.",
-          "pip_or_pkg": "# Онлайн интерфейс",
-          "usage": "Открыть сайт https://zoom.earth/ для просмотра снимков со спутников NASA"
-        },
-        "launch": {
-          "href": "https://zoom.earth/",
-          "label": "🌐 Открыть Zoom Earth Онлайн",
-          "type": "url"
-        },
-        "name": "🛰️ Спутниковая карта Земли в реальном времени (Zoom Earth)",
-        "purpose": "🌍 Показывает свежие спутниковые снимки планеты высокого разрешения, погоду, пожары и штормы, обновляясь каждые 10-15 минут.",
-        "repo": "https://zoom.earth/",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://zoom.earth/"
-      }
-    ]
-  },
-  {
-    "desc": "Быстрый поиск человека и его аккаунтов по псевдониму на сотнях сайтов, форумов и соцсетей.",
-    "id": "username_osint",
-    "title": "🔍 Поиск человека по никнеймам (750+ баз)",
-    "tools": [
-      {
-        "id": "sherlock",
-        "input": "никнейм (например, alex_pro)",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный в WebApp скоростной движок",
-          "notes": "Опрашивает 750+ проверенных мировых баз параллельно за пару секунд.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите никнейм цели и нажмите «Сканировать»"
-        },
-        "launch": {
-          "action": "scan_username",
-          "label": "⚡ Найти все аккаунты в WebApp",
-          "type": "api"
-        },
-        "name": "⚡ Поиск человека по никнейму на 750+ сайтах (Sherlock)",
-        "purpose": "🔍 Мгновенно проверяет один никнейм сразу на сотнях платформ (Telegram, GitHub, VK, Steam, Reddit, TikTok, Twitch, Habr и др.) и дает прямые кликабельные ссылки на найденные страницы.",
-        "repo": "https://github.com/sherlock-project/sherlock",
-        "scan_type": "username",
-        "web_runnable": true,
-        "web_url": "https://sherlock-project.github.io/"
-      },
-      {
-        "id": "maigret",
-        "input": "никнейм пользователя",
-        "install_guide": {
-          "docker": "docker run --rm -it soxoj/maigret <username>",
-          "git": "git clone https://github.com/soxoj/maigret.git",
-          "notes": "Генерирует наглядные отчеты со всеми найденными ссылками и фото.",
-          "pip_or_pkg": "pip3 install maigret",
-          "usage": "Введите никнейм для проверки расширенной базы сервисов"
-        },
-        "launch": {
-          "action": "scan_username",
-          "label": "⚡ Запустить поиск Maigret",
-          "type": "api"
-        },
-        "name": "📋 Подробный сбор досье по никнейму (Maigret 3000+ баз)",
-        "purpose": "📑 Глубокий поиск по более чем 3000 сайтам: извлекает имена, аватарки, интересы и автоматически строит сводный отчет по человеку.",
-        "repo": "https://github.com/soxoj/maigret",
-        "scan_type": "username",
-        "web_runnable": true,
-        "web_url": "https://maigret.readthedocs.io/"
-      },
-      {
-        "id": "blackbird",
-        "input": "никнейм",
-        "install_guide": {
-          "docker": "docker run -p 9797:9797 blackbird",
-          "git": "git clone https://github.com/p1ngul1n0/blackbird",
-          "notes": "Использует современные алгоритмы исключения ложных срабатываний.",
-          "pip_or_pkg": "pip3 install -r requirements.txt",
-          "usage": "Введите никнейм для скоростной проверки аккаунтов"
-        },
-        "launch": {
-          "action": "scan_username",
-          "label": "⚡ Быстрый поиск в WebApp",
-          "type": "api"
-        },
-        "name": "🚀 Скоростной чекер никнеймов (Blackbird)",
-        "purpose": "⚡ Быстрая проверка присутствия ника в соцсетях с удобным интерфейсом и фильтрацией только реально существующих страниц.",
-        "repo": "https://github.com/p1ngul1n0/blackbird",
-        "scan_type": "username",
-        "web_runnable": true,
-        "web_url": "https://github.com/p1ngul1n0/blackbird"
-      },
-      {
-        "id": "social_analyzer",
-        "input": "никнейм или имя профиля",
-        "install_guide": {
-          "docker": "docker run -p 9005:9005 -it qeeqbox/social-analyzer",
-          "git": "git clone https://github.com/qeeqbox/social-analyzer.git",
-          "notes": "Позволяет просматривать профили даже при блокировках сайтов.",
-          "pip_or_pkg": "pip3 install social-analyzer",
-          "usage": "python3 app.py --username target_user"
-        },
-        "launch": {
-          "href": "https://github.com/qeeqbox/social-analyzer",
-          "label": "📖 Открыть репозиторий на GitHub",
-          "type": "url"
-        },
-        "name": "📸 Анализ страниц с автоматическими скриншотами (Social-Analyzer)",
-        "purpose": "🖼️ Не просто находит аккаунты человека, но и автоматически делает скриншоты найденных страниц для удобного просмотра без перехода по сайтам.",
-        "repo": "https://github.com/qeeqbox/social-analyzer",
-        "web_runnable": false,
-        "web_url": "https://github.com/qeeqbox/social-analyzer"
-      },
-      {
-        "id": "whatsmyname",
-        "input": "никнейм",
-        "install_guide": {
-          "docker": "# Доступно через https://whatsmyname.app/",
-          "git": "git clone https://github.com/WebBreacher/WhatsMyName.git",
-          "notes": "База WhatsMyName используется в большинстве профессиональных OSINT-систем.",
-          "pip_or_pkg": "# Доступно онлайн",
-          "usage": "Открыть сайт https://whatsmyname.app/ и ввести никнейм"
-        },
-        "launch": {
-          "href": "https://whatsmyname.app/",
-          "label": "🌐 Открыть WhatsMyName WebApp",
-          "type": "url"
-        },
-        "name": "🌐 Глобальный каталог поиска по именам (WhatsMyName)",
-        "purpose": "🔍 Всемирно признанная открытая база проверочных шаблонов для мгновенного нахождения учетных записей по всему интернету.",
-        "repo": "https://github.com/WebBreacher/WhatsMyName",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://whatsmyname.app/"
-      }
-    ]
-  },
-  {
-    "desc": "Инструменты для извлечения скрытых телефонов, почт, привязок и анализа профилей Instagram, VK, TikTok, X/Twitter и Google.",
-    "id": "social_google_instagram",
-    "title": "📱 Google, Instagram & Социальные сети",
-    "tools": [
-      {
-        "id": "ghunt",
-        "input": "почта Gmail (например, target@gmail.com)",
-        "install_guide": {
-          "docker": "docker run -it ghunt email target@gmail.com",
-          "git": "git clone https://github.com/mxrch/GHunt.git",
-          "notes": "Помогает восстановить перемещения человека по его отзывам на Google Картах.",
-          "pip_or_pkg": "pip install ghunt",
-          "usage": "ghunt email target@gmail.com"
-        },
-        "launch": {
-          "href": "https://github.com/mxrch/GHunt",
-          "label": "📖 Открыть GHunt на GitHub",
-          "type": "url"
-        },
-        "name": "📧 Разведка по почте Google / Gmail (GHunt)",
-        "purpose": "🔍 Показывает скрытую информацию о владельце почты Gmail: его настоящее имя, отзывы и отметки на Google Картах (где он бывал), канал на YouTube и дату создания профиля.",
-        "repo": "https://github.com/mxrch/GHunt",
-        "web_runnable": false,
-        "web_url": "https://github.com/mxrch/GHunt"
-      },
-      {
-        "id": "instaloader",
-        "input": "юзернейм Instagram (например, travel_blogger)",
-        "install_guide": {
-          "docker": "docker run --rm -v $(pwd):/data instaloader/instaloader profile <target>",
-          "git": "git clone https://github.com/instaloader/instaloader.git",
-          "notes": "Дает прямые ссылки на просмотр историй и постов без авторизации.",
-          "pip_or_pkg": "pip3 install instaloader",
-          "usage": "Введите ник Instagram для анонимного просмотра и ссылок на просмотрщики"
-        },
-        "launch": {
-          "action": "scan_universal",
-          "label": "⚡ Анализировать Instagram",
-          "type": "api"
-        },
-        "name": "📸 Сохранение фото и историй Instagram (Instaloader)",
-        "purpose": "📥 Позволяет сохранять публикации, истории и видео из Instagram вместе с геометками (где было снято фото), точным временем и комментариями.",
-        "repo": "https://github.com/instaloader/instaloader",
-        "scan_type": "cli_tool",
-        "web_runnable": true,
-        "web_url": "https://instaloader.github.io/"
-      },
-      {
-        "id": "osintgram",
-        "input": "юзернейм Instagram",
-        "install_guide": {
-          "docker": "docker run --rm -it osintgram <target>",
-          "git": "git clone https://github.com/Datalux/Osintgram.git",
-          "notes": "Позволяет получить телефон, почту и список отметок человека на фото.",
-          "pip_or_pkg": "pip3 install -r requirements.txt",
-          "usage": "python3 main.py <target_username>"
-        },
-        "launch": {
-          "action": "scan_universal",
-          "label": "⚡ Запустить Osintgram",
-          "type": "api"
-        },
-        "name": "🕵️ Терминал Instagram-расследований (Osintgram)",
-        "purpose": "🔎 Извлекает списки подписчиков, номера телефонов и почты из описаний, геометки всех фотографий и историю комментариев пользователя.",
-        "repo": "https://github.com/Datalux/Osintgram",
-        "scan_type": "cli_tool",
-        "web_runnable": true,
-        "web_url": "https://github.com/Datalux/Osintgram"
-      },
-      {
-        "id": "toutatis",
-        "input": "юзернейм Instagram",
-        "install_guide": {
-          "docker": "docker run -it toutatis",
-          "git": "git clone https://github.com/megadose/toutatis.git",
-          "notes": "Помогает сопоставить профиль Instagram с известным номером телефона.",
-          "pip_or_pkg": "pip3 install toutatis",
-          "usage": "toutatis -u <username>"
-        },
-        "launch": {
-          "action": "scan_universal",
-          "label": "⚡ Узнать телефон и почту",
-          "type": "api"
-        },
-        "name": "📞 Поиск номера телефона и почты из Instagram (Toutatis)",
-        "purpose": "📱 Узнает скрытые символы привязанного к Instagram номера телефона (+7***42) и частичный адрес почты через официальные формы восстановления доступа.",
-        "repo": "https://github.com/megadose/toutatis",
-        "scan_type": "cli_tool",
-        "web_runnable": true,
-        "web_url": "https://github.com/megadose/toutatis"
-      },
-      {
-        "id": "instagram_followers_parser",
-        "input": "ссылка на профиль Instagram",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "git clone https://github.com/VladiStep/instagram_followers_parser.git",
-          "notes": "Автоматически прокручивает список и сохраняет всех подписчиков.",
-          "pip_or_pkg": "# Браузерный скрипт",
-          "usage": "Вставить код скрипта в консоль браузера на странице подписчиков"
-        },
-        "launch": {
-          "href": "https://github.com/VladiStep/instagram_followers_parser",
-          "label": "📖 Открыть скрипт на GitHub",
-          "type": "url"
-        },
-        "name": "👥 Выгрузка списка подписчиков страницы Instagram",
-        "purpose": "⚡ Удобный скрипт для быстрой выгрузки всех подписчиков и подписок любого открытого профиля Instagram в удобный список.",
-        "repo": "https://github.com/VladiStep/instagram_followers_parser",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://github.com/VladiStep/instagram_followers_parser"
-      },
-      {
-        "id": "vk_recon",
-        "input": "короткий адрес или ID ВКонтакте (например, durov или id1)",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный веб-сканер VK",
-          "notes": "Генерирует поисковые запросы по стене, фото и архивным копиям.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите никнейм или ID страницы (например, durov или id12345)"
-        },
-        "launch": {
-          "action": "scan_username",
-          "label": "⚡ Анализ страницы ВКонтакте",
-          "type": "api"
-        },
-        "name": "🌐 Поиск скрытых данных ВКонтакте (VK Recon)",
-        "purpose": "🔎 Находит скрытых друзей, старые записи на стене, закрытые альбомы, привязанные города и историю изменения страниц ВКонтакте.",
-        "repo": "https://github.com/sherlock-project/sherlock",
-        "scan_type": "username",
-        "web_runnable": true,
-        "web_url": "https://vk.com/"
-      },
-      {
-        "id": "tiktok_osint",
-        "input": "юзернейм TikTok (например, @tiktok_star)",
-        "install_guide": {
-          "docker": "docker run -it drawrowfly/tiktok-scraper user <username>",
-          "git": "git clone https://github.com/drawrowfly/tiktok-scraper.git",
-          "notes": "Позволяет скачать аватар в полном размере и узнать скрытый SecUID.",
-          "pip_or_pkg": "npm install -g tiktok-scraper",
-          "usage": "Введите @юзернейм TikTok для проверки"
-        },
-        "launch": {
-          "action": "scan_username",
-          "label": "⚡ Проверить профиль TikTok",
-          "type": "api"
-        },
-        "name": "🎵 Сбор данных профиля TikTok (TikTok OSINT)",
-        "purpose": "📱 Извлекает скрытый числовой ID автора, аватарку в максимальном качестве, дату создания аккаунта и список популярных хэштегов.",
-        "repo": "https://github.com/drawrowfly/tiktok-scraper",
-        "scan_type": "username",
-        "web_runnable": true,
-        "web_url": "https://www.tiktok.com/"
-      }
-    ]
-  },
-  {
-    "desc": "Инструменты для исследования сайтов, проверки IP, поддоменов, защиты от утечек DNS и поиска утекших ключей.",
-    "id": "web_infra_secrets",
-    "title": "🌐 Сайты, Домены, IP & MyIP Toolbox",
-    "tools": [
-      {
-        "id": "myip_toolbox",
-        "input": "IP-адрес или домен (или оставьте пустым для проверки своего IP)",
-        "install_guide": {
-          "docker": "docker run -d -p 18966:18966 jason5ng32/myip:latest",
-          "git": "git clone https://github.com/jason5ng32/MyIP.git",
-          "notes": "Позволяет убедиться, что ваш реальный IP-адрес надежно скрыт при использовании VPN/прокси.",
-          "pip_or_pkg": "npm install && npm run build",
-          "usage": "Введите IP или домен для проверки геолокации, автономной системы и утечек DNS"
-        },
-        "launch": {
-          "action": "scan_myip",
-          "label": "⚡ Анализ MyIP в WebApp",
-          "type": "api"
-        },
-        "name": "🌐 Комплексный анализ IP & Проверка утечки DNS (MyIP Toolbox)",
-        "purpose": "🛡️ Показывает ваш реальный IP, страну, город, провайдера, проверяет, не утекает ли реальный адрес через DNS/WebRTC, и тестирует скорость соединения.",
-        "repo": "https://github.com/jason5ng32/MyIP",
-        "scan_type": "myip",
-        "web_runnable": true,
-        "web_url": "https://ipcheck.ing/"
-      },
-      {
-        "id": "photon",
-        "input": "ссылка на сайт (например, site.com)",
-        "install_guide": {
-          "docker": "docker run -it photon -u target.com",
-          "git": "git clone https://github.com/s0md3v/Photon.git",
-          "notes": "Быстро собирает все контакты и документы с целевого ресурса.",
-          "pip_or_pkg": "pip3 install -r requirements.txt",
-          "usage": "python3 photon.py -u https://target.com --keys --export"
-        },
-        "launch": {
-          "href": "https://github.com/s0md3v/Photon",
-          "label": "📖 Открыть Photon на GitHub",
-          "type": "url"
-        },
-        "name": "🕷️ Быстрый сборщик контактов с сайта (Photon Crawler)",
-        "purpose": "🕸️ Автоматически обходит любой сайт и находит на нем все спрятанные email-адреса, телефоны, ссылки на соцсети и скрытые файлы.",
-        "repo": "https://github.com/s0md3v/Photon",
-        "web_runnable": false,
-        "web_url": "https://github.com/s0md3v/Photon"
-      },
-      {
-        "id": "trufflehog",
-        "input": "ссылка на репозиторий GitHub или сайт",
-        "install_guide": {
-          "docker": "docker run -it trufflesecurity/trufflehog:latest",
-          "git": "git clone https://github.com/trufflesecurity/trufflehog.git",
-          "notes": "Автоматически проверяет, работают ли найденные ключи.",
-          "pip_or_pkg": "curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh",
-          "usage": "trufflehog github --repo https://github.com/target/repo"
-        },
-        "launch": {
-          "href": "https://github.com/trufflesecurity/trufflehog",
-          "label": "📖 Открыть TruffleHog на GitHub",
-          "type": "url"
-        },
-        "name": "🔑 Поиск забытых паролей и API-ключей (TruffleHog)",
-        "purpose": "🔐 Сканирует сайты и открытые репозитории с кодом, находя случайно опубликованные пароли, секретные ключи доступа и токены.",
-        "repo": "https://github.com/trufflesecurity/trufflehog",
-        "web_runnable": false,
-        "web_url": "https://trufflesecurity.com/"
-      },
-      {
-        "id": "finalrecon",
-        "input": "адрес сайта или домен (например, example.com)",
-        "install_guide": {
-          "docker": "docker run -it finalrecon --full https://target.com",
-          "git": "git clone https://github.com/thewhiteh4t/FinalRecon.git",
-          "notes": "Генерирует аккуратный сводный отчет обо всей инфраструктуре сайта.",
-          "pip_or_pkg": "pip3 install -r requirements.txt",
-          "usage": "python3 finalrecon.py --full https://target.com"
-        },
-        "launch": {
-          "href": "https://github.com/thewhiteh4t/FinalRecon",
-          "label": "📖 Открыть FinalRecon на GitHub",
-          "type": "url"
-        },
-        "name": "🎯 Экспресс-проверка сайта: сервер, защита, порты (FinalRecon)",
-        "purpose": "🖥️ За считанные секунды собирает полное досье на сайт: где физически стоит сервер, какой у него сертификат безопасности, кто владелец и какие порты открыты.",
-        "repo": "https://github.com/thewhiteh4t/FinalRecon",
-        "web_runnable": false,
-        "web_url": "https://github.com/thewhiteh4t/FinalRecon"
-      },
-      {
-        "id": "webcheck",
-        "input": "домен сайта",
-        "install_guide": {
-          "docker": "docker run -p 3000:3000 lissy93/web-check",
-          "git": "git clone https://github.com/Lissy93/web-check.git",
-          "notes": "Показывает подробный технический паспорт сайта с графиками.",
-          "pip_or_pkg": "npm install && npm run build",
-          "usage": "Доступен публичный облачный сервис https://web-check.xyz/ без установки"
-        },
-        "launch": {
-          "href": "https://web-check.xyz/",
-          "label": "🌐 Открыть Web-Check Онлайн",
-          "type": "url"
-        },
-        "name": "📊 Наглядный онлайн-аудит любого сайта (Web-Check)",
-        "purpose": "🌐 Красивая интерактивная панель, показывающая все технические данные сайта: хостинг, страну расположения, безопасность и историю домена.",
-        "repo": "https://github.com/Lissy93/web-check",
-        "scan_type": "domain",
-        "web_runnable": true,
-        "web_url": "https://web-check.xyz/"
-      },
-      {
-        "id": "subfinder",
-        "input": "домен организации (например, company.com)",
-        "install_guide": {
-          "docker": "docker run projectdiscovery/subfinder -d example.com",
-          "git": "git clone https://github.com/projectdiscovery/subfinder.git",
-          "notes": "Пассивный поиск без прямой нагрузки на целевой сервер.",
-          "pip_or_pkg": "go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest",
-          "usage": "Введите домен в поле выше для автоматического поиска поддоменов"
-        },
-        "launch": {
-          "action": "scan_domain",
-          "label": "⚡ Найти все поддомены",
-          "type": "api"
-        },
-        "name": "🔍 Поиск всех поддоменов сайта (Subfinder)",
-        "purpose": "🔎 Находит скрытые, тестовые и внутренние страницы организации (например, admin.site.com, dev.site.com, mail.site.com).",
-        "repo": "https://github.com/projectdiscovery/subfinder",
-        "scan_type": "domain",
-        "web_runnable": true,
-        "web_url": "https://github.com/projectdiscovery/subfinder"
-      }
-    ]
-  },
-  {
-    "desc": "Инструменты для построения карт расследования, визуализации связей людей и готовые матрицы из 70+ открытых источников.",
-    "id": "mapping_investigation",
-    "title": "🗺️ Legendary OSINT, Графы связей & Фреймворки",
-    "tools": [
-      {
-        "id": "legendary_osint",
-        "input": "любая цель: никнейм, телефон, почта, имя или сайт",
-        "install_guide": {
-          "docker": "# Встроен в панель WebApp",
-          "git": "git clone https://github.com/K2SOsint/Legendary_OSINT.git",
-          "notes": "Объединяет поиск людей, транспорта, телефонных книг, документов и утечек.",
-          "pip_or_pkg": "pip install rich questionary requests",
-          "usage": "Введите цель для генерации готовых поисковых сканеров по 70+ реестрам"
-        },
-        "launch": {
-          "action": "scan_legendary",
-          "label": "⚡ Запустить поиск в 70+ базах",
-          "type": "api"
-        },
-        "name": "🌟 Легендарная матрица поиска людей и утечек (Legendary OSINT 70+ баз)",
-        "purpose": "🔥 Универсальный комбайн по 70+ проверенным источникам: мгновенно ищет человека по имени, телефону, email, никнейму, автомобильным номерам или сайту.",
-        "repo": "https://github.com/K2SOsint/Legendary_OSINT",
-        "scan_type": "legendary",
-        "web_runnable": true,
-        "web_url": "https://github.com/K2SOsint/Legendary_OSINT"
-      },
-      {
-        "id": "spiderfoot",
-        "input": "домен, IP, почта или имя человека",
-        "install_guide": {
-          "docker": "docker run -p 5001:5001 spiderfoot",
-          "git": "git clone https://github.com/smicallef/spiderfoot.git",
-          "notes": "Поднимает полноценную веб-лабораторию с интерактивным графом связей.",
-          "pip_or_pkg": "pip3 install -r requirements.txt",
-          "usage": "python3 sf.py -l 127.0.0.1:5001 # Веб-панель"
-        },
-        "launch": {
-          "href": "https://github.com/smicallef/spiderfoot",
-          "label": "📖 Открыть SpiderFoot на GitHub",
-          "type": "url"
-        },
-        "name": "🕷️ Автоматический комбайн расследований (SpiderFoot)",
-        "purpose": "🤖 Робот для сбора разведданных: сам связывает между собой IP-адреса, домены, почты и телефоны одного человека или компании в единую карту.",
-        "repo": "https://github.com/smicallef/spiderfoot",
-        "web_runnable": false,
-        "web_url": "https://www.spiderfoot.net/"
-      },
-      {
-        "id": "maltego",
-        "input": "имя, домен или организация",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "# Профессиональная программа для ПК",
-          "notes": "Мировой стандарт визуального анализа связей в детективных расследованиях.",
-          "pip_or_pkg": "# Доступна бесплатная версия Maltego Community Edition",
-          "usage": "Скачать с https://www.maltego.com/ и запустить визуальные трансформации"
-        },
-        "launch": {
-          "href": "https://www.maltego.com/",
-          "label": "🌐 Открыть сайт Maltego",
-          "type": "url"
-        },
-        "name": "🌐 Визуальный граф связей между людьми и сайтами (Maltego)",
-        "purpose": "🗺️ Рисует интерактивную схему связей: кто с кем общается, какими сайтами владеет и через какие компании связан.",
-        "repo": "https://github.com/maltego",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://www.maltego.com/"
-      },
-      {
-        "id": "osint_framework",
-        "input": "выбор категории на интерактивной карте",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "git clone https://github.com/lockfale/osint-framework.git",
-          "notes": "Самый структурированный путеводитель по поиску информации в мире.",
-          "pip_or_pkg": "# Доступно онлайн",
-          "usage": "Открыть сайт https://osintframework.com/ и выбрать нужный раздел данных"
-        },
-        "launch": {
-          "href": "https://osintframework.com/",
-          "label": "🌐 Открыть OSINT Framework",
-          "type": "url"
-        },
-        "name": "🌳 Карта-путеводитель по всем OSINT инструментам мира",
-        "purpose": "🧭 Большое интерактивное дерево всех бесплатных сервисов интернета для поиска людей, транспорта, документов и геолокаций.",
-        "repo": "https://github.com/lockfale/osint-framework",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://osintframework.com/"
-      }
-    ]
-  },
-  {
-    "desc": "Инструменты проверки номеров телефонов, оператора, региона и поиска регистраций по email-адресам.",
-    "id": "email_checks",
-    "title": "📧 Почта и Телефонная разведка (Email & Phone)",
-    "tools": [
-      {
-        "id": "phoneinfoga_recon",
-        "input": "номер телефона (например, +79991234567)",
-        "install_guide": {
-          "docker": "# Работает автономно в WebApp",
-          "git": "# Встроенный в систему определитель номеров",
-          "notes": "Показывает оператора, город и открывает чат WhatsApp без сохранения контакта.",
-          "pip_or_pkg": "pip install phonenumbers httpx",
-          "usage": "Введите номер телефона в международном формате (с +7 или +380)"
-        },
-        "launch": {
-          "action": "scan_phone",
-          "label": "⚡ Проверить телефон в WebApp",
-          "type": "api"
-        },
-        "name": "📱 Проверка номера телефона: оператор, город, чаты (PhoneInfoga)",
-        "purpose": "🔍 Узнает страну, оператора связи (МТС, Билайн, Мегафон и др.), регион номера и дает прямые ссылки на чат в WhatsApp и поиск в Telegram в один клик.",
-        "repo": "https://github.com/sundowndev/phoneinfoga",
-        "scan_type": "phone",
-        "web_runnable": true,
-        "web_url": "https://github.com/sundowndev/phoneinfoga"
-      },
-      {
-        "id": "holehe",
-        "input": "адрес почты (например, user@gmail.com)",
-        "install_guide": {
-          "docker": "# Работает автономно в WebApp",
-          "git": "# Встроенный в систему веб-чекер почты",
-          "notes": "Проверяет наличие учетной записи без отправки писем жертве.",
-          "pip_or_pkg": "pip install holehe",
-          "usage": "Введите адрес электронной почты и нажмите «Сканировать»"
-        },
-        "launch": {
-          "action": "scan_email",
-          "label": "⚡ Проверить регистрацию почты",
-          "type": "api"
-        },
-        "name": "📧 Проверка email: на каких сайтах есть аккаунт (Holehe)",
-        "purpose": "📬 Проверяет, зарегистрирована ли почта на 120+ популярных сервисах (Instagram, Twitter, Discord, Steam, Госуслуги и др.) абсолютно анонимно для владельца.",
-        "repo": "https://github.com/megadose/holehe",
-        "scan_type": "email",
-        "web_runnable": true,
-        "web_url": "https://github.com/megadose/holehe"
-      },
-      {
-        "id": "epieos",
-        "input": "email адрес",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "# Облачный онлайн-сервис",
-          "notes": "Позволяет узнать имя владельца и его отметки на картах.",
-          "pip_or_pkg": "# Доступно через Web UI",
-          "usage": "Открыть сайт https://epieos.com/ и ввести адрес почты"
-        },
-        "launch": {
-          "href": "https://epieos.com/",
-          "label": "🌐 Открыть сервис Epieos Онлайн",
-          "type": "url"
-        },
-        "name": "👤 Поиск информации о владельце email (Epieos)",
-        "purpose": "🔎 Находит привязанный профиль Google, имя владельца, аватарку и отзывы на картах по обычному адресу электронной почты.",
-        "repo": "https://github.com/epieos",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://epieos.com/"
-      }
-    ]
-  },
-  {
-    "desc": "Универсальные сервисы для проверки IP-адресов, открытых портов, подключенных устройств и DNS-записей.",
-    "id": "security_utilities",
-    "title": "🛠️ Полезные сетевые утилиты и Shodan",
-    "tools": [
-      {
-        "id": "cyberchef",
-        "input": "закодированный текст или строка",
-        "install_guide": {
-          "docker": "# Не требуется",
-          "git": "git clone https://github.com/gchq/CyberChef.git",
-          "notes": "Работает прямо в браузере без отправки ваших данных на сервер.",
-          "pip_or_pkg": "# Доступна онлайн-версия",
-          "usage": "Открыть сайт https://gchq.github.io/CyberChef/ в браузере"
-        },
-        "launch": {
-          "href": "https://gchq.github.io/CyberChef/",
-          "label": "🌐 Открыть CyberChef Онлайн",
-          "type": "url"
-        },
-        "name": "🧰 Кибер-кухня: расшифровка любого текста и кода (CyberChef)",
-        "purpose": "🔓 Универсальный онлайн-декодер: раскодирует непонятные наборы символов (Base64, Hex, URL-кодировку), распаковывает архивы и читает служебные данные.",
-        "repo": "https://github.com/gchq/CyberChef",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://gchq.github.io/CyberChef/"
-      },
-      {
-        "id": "ipinfo",
-        "input": "IP-адрес (например, 8.8.8.8)",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный в систему чекер IP",
-          "notes": "Мгновенно идентифицирует мобильных операторов, хостинги и VPN.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите IP-адрес для определения страны, города и провайдера"
-        },
-        "launch": {
-          "action": "scan_ip",
-          "label": "⚡ Проверить IP в WebApp",
-          "type": "api"
-        },
-        "name": "📍 Определение провайдера и города по IP-адресу (IP-API)",
-        "purpose": "🌍 Показывает, в каком городе находится компьютер или сервер, какому интернет-провайдеру принадлежит и не используется ли VPN или датацентр.",
-        "repo": "https://github.com/ipinfo",
-        "scan_type": "ip",
-        "web_runnable": true,
-        "web_url": "https://ipinfo.io/"
-      },
-      {
-        "id": "shodan_search",
-        "input": "IP-адрес, домен или поисковый запрос",
-        "install_guide": {
-          "docker": "# Доступен через shodan.io",
-          "git": "git clone https://github.com/achillean/shodan-python.git",
-          "notes": "Позволяет узнать, какие порты и службы открыты на сервере.",
-          "pip_or_pkg": "pip install shodan",
-          "usage": "Открыть сайт https://www.shodan.io/ и ввести IP или поисковый запрос"
-        },
-        "launch": {
-          "href": "https://www.shodan.io/",
-          "label": "🌐 Открыть Shodan.io",
-          "type": "url"
-        },
-        "name": "🌐 Поисковик подключенных к сети камер и серверов (Shodan)",
-        "purpose": "🔭 Находит открытые веб-камеры, умные устройства, сервера и базы данных, оставленные без пароля в свободном доступе.",
-        "repo": "https://github.com/achillean/shodan-python",
-        "scan_type": "web_link",
-        "web_runnable": true,
-        "web_url": "https://www.shodan.io/"
-      },
-      {
-        "id": "dns_recon",
-        "input": "домен сайта (например, google.com)",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный DNS анализатор",
-          "notes": "Помогает выявить реальный сервер сайта за Cloudflare.",
-          "pip_or_pkg": "pip install dnspython httpx",
-          "usage": "Введите домен для проверки записей A, MX, NS и TXT"
-        },
-        "launch": {
-          "action": "scan_domain",
-          "label": "⚡ Проверить DNS домена",
-          "type": "api"
-        },
-        "name": "📜 Проверка почтовых и серверных настроек домена (DNS Recon)",
-        "purpose": "✉️ Показывает, через какие сервера ходит почта сайта, защищен ли домен от подделки писем мошенниками (SPF, DKIM, DMARC) и где он размещен.",
-        "repo": "https://github.com/lunar-recon/dns",
-        "scan_type": "domain",
-        "web_runnable": true,
-        "web_url": "https://dnschecker.org/"
-      }
-    ]
-  },
-  {
-    "desc": "Глубокая разведка по исходному коду, коммитам разработчиков, криптовалютным балансам и кошелькам.",
-    "id": "hacker_crypto_git",
-    "title": "💻 GitHub, Блокчейн & Deep OSINT",
-    "tools": [
-      {
-        "id": "github_recon",
-        "input": "юзернейм на GitHub (например, torvalds)",
-        "install_guide": {
-          "docker": "# Работает автономно в WebApp",
-          "git": "# Встроенный в систему веб-сканер GitHub API",
-          "notes": "Находит настоящую почту программиста из истории Push-событий.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите юзернейм на GitHub для извлечения реального email автора"
-        },
-        "launch": {
-          "action": "scan_github",
-          "label": "⚡ Найти почту автора",
-          "type": "api"
-        },
-        "name": "💻 Поиск скрытой почты разработчика на GitHub",
-        "purpose": "🔍 Находит реальный адрес электронной почты и имя автора проекта, спрятанные в истории загрузок кода (git-коммитах), даже если они скрыты в профиле.",
-        "repo": "https://github.com/techgaun/github-dorks",
-        "scan_type": "github",
-        "web_runnable": true,
-        "web_url": "https://github.com/"
-      },
-      {
-        "id": "crypto_tracker",
-        "input": "адрес криптокошелька",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный блокчейн-сканер",
-          "notes": "Позволяет быстро отследить движение средств и историю транзакций.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите адрес кошелька BTC, ETH или TRON (USDT TRC-20)"
-        },
-        "launch": {
-          "action": "scan_crypto",
-          "label": "⚡ Посмотреть баланс и переводы",
-          "type": "api"
-        },
-        "name": "💰 Проверка баланса и переводов криптокошелька",
-        "purpose": "🪙 Показывает реальный баланс кошелька, дату первой и последней транзакции, общую сумму всех входящих денег в сетях Bitcoin, Ethereum, USDT и Solana.",
-        "repo": "https://github.com/blockchair",
-        "scan_type": "crypto",
-        "web_runnable": true,
-        "web_url": "https://blockchair.com/"
-      },
-      {
-        "id": "holehe_osint",
-        "input": "email адрес",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный мульти-сервисный чекер",
-          "notes": "Помогает узнать все сайты, где зарегистрирован интересующий человек.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите почту для составления цифрового профиля"
-        },
-        "launch": {
-          "action": "scan_email",
-          "label": "⚡ Проверить почту",
-          "type": "api"
-        },
-        "name": "🌐 Полный цифровой профиль по адресу почты (Holehe Hub)",
-        "purpose": "📧 Составляет список всех социальных сетей, онлайн-магазинов и форумов, где человек когда-либо создавал учетную запись с этой почтой.",
-        "repo": "https://github.com/megadose/holehe",
-        "scan_type": "email",
-        "web_runnable": true,
-        "web_url": "https://github.com/megadose/holehe"
-      }
-    ]
-  },
-  {
-    "desc": "Сквозной сбор связей человека, просмотр удаленных веб-страниц и скрытых поддоменов через SSL-сертификаты.",
-    "id": "deep_archive_recon",
-    "title": "🏛️ Архивы, Удаленные данные & Сквозной Auto-Recon",
-    "tools": [
-      {
-        "id": "autorecon",
-        "input": "никнейм, почта, телефон или ссылка",
-        "install_guide": {
-          "docker": "# Встроенный сервис",
-          "git": "# Центральный аналитический движок платформы",
-          "notes": "Объединяет аккаунты, почты, коммиты и строит интерактивную карту связей.",
-          "pip_or_pkg": "pip install httpx beautifulsoup4",
-          "usage": "Введите любую цель для запуска автоматического сквозного сбора"
-        },
-        "launch": {
-          "action": "scan_autorecon",
-          "label": "⚡ Запустить полное расследование",
-          "type": "api"
-        },
-        "name": "⚡ Сквозное автоматическое расследование и граф связей",
-        "purpose": "🕸️ Проводит комплексный поиск сразу по всем базам (ник, почта, телефон, соцсети), связывает все найденные данные воедино и рисует наглядный граф связей.",
-        "repo": "https://github.com/sherlock-project/sherlock",
-        "scan_type": "autorecon",
-        "web_runnable": true,
-        "web_url": ""
-      },
-      {
-        "id": "wayback_recon",
-        "input": "ссылка на сайт или профиль",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный сканер Web Archive API",
-          "notes": "Позволяет увидеть текст страницы до ее редактирования или удаления.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите ссылку на страницу для поиска сохраненных снимков"
-        },
-        "launch": {
-          "action": "scan_wayback",
-          "label": "⚡ Найти сохраненные снимки",
-          "type": "api"
-        },
-        "name": "🏛️ Поиск удаленных версий страниц в Веб-Архиве",
-        "purpose": "⏳ Находит старые копии сайтов и профилей в соцсетях до того, как с них стерли компрометирующую информацию или контакты.",
-        "repo": "https://github.com/internetarchive/wayback",
-        "scan_type": "wayback",
-        "web_runnable": true,
-        "web_url": "https://web.archive.org/"
-      },
-      {
-        "id": "crtsh",
-        "input": "домен компании (например, bank.com)",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Сканер глобального реестра сертификатов",
-          "notes": "Находит поддомены, которых нет в открытых записях DNS.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите домен для поиска всех зарегистрированных поддоменов"
-        },
-        "launch": {
-          "action": "scan_crtsh",
-          "label": "⚡ Проверить сертификаты",
-          "type": "api"
-        },
-        "name": "📜 Поиск скрытых поддоменов через SSL-сертификаты (crt.sh)",
-        "purpose": "🔍 Находит секретные тестовые страницы и закрытые поддомены компании, на которые когда-либо выпускались официальные сертификаты безопасности.",
-        "repo": "https://github.com/crtsh",
-        "scan_type": "crtsh",
-        "web_runnable": true,
-        "web_url": "https://crt.sh/"
-      }
-    ]
-  },
-  {
-    "desc": "Мастер боевых поисковых дорков, автоопределение типов паролей, расшифровка JWT токенов и Base64/Hex.",
-    "id": "cyber_tools_lab",
-    "title": "🧰 Лаборатория Декодеров, Дорки & Крипто-форензика",
-    "tools": [
-      {
-        "id": "cyberchef_decoder",
-        "input": "зашифрованная строка или текст",
-        "install_guide": {
-          "docker": "# Работает прямо в браузере",
-          "git": "# Встроенный в систему декодер",
-          "notes": "Позволяет быстро разобрать непонятный шифр без лишних программ.",
-          "pip_or_pkg": "# Не требуется",
-          "usage": "Вставьте закодированную строку и выберите нужный тип расшифровки"
-        },
-        "launch": {
-          "action": "open_decoder",
-          "label": "⚡ Открыть декодер",
-          "type": "api"
-        },
-        "name": "🔓 Быстрый декодер текста (Base64, Hex, URL, ROT13)",
-        "purpose": "🔤 Мгновенно превращает непонятный закодированный текст или шифр в обычные читаемые русские или английские слова.",
-        "repo": "https://github.com/gchq/CyberChef",
-        "scan_type": "decoder",
-        "web_runnable": true,
-        "web_url": ""
-      },
-      {
-        "id": "hash_identifier",
-        "input": "строка хеша (например, 5d41402abc4b2a76b9719d911017c592)",
-        "install_guide": {
-          "docker": "# Работает в WebApp",
-          "git": "# Встроенный идентификатор хешей",
-          "notes": "Показывает тип шифрования и разрядность.",
-          "pip_or_pkg": "# Не требуется",
-          "usage": "Вставьте строку хеша для определения алгоритма"
-        },
-        "launch": {
-          "action": "open_decoder",
-          "label": "⚡ Распознать тип хеша",
-          "type": "api"
-        },
-        "name": "🔐 Определение типа пароля или хеша (Hash Identifier)",
-        "purpose": "🎯 Определяет, каким алгоритмом был зашифрован пароль или файл (MD5, SHA-256, bcrypt, NTLM) и можно ли его расшифровать.",
-        "repo": "https://github.com/psypanda/hashID",
-        "scan_type": "decoder",
-        "web_runnable": true,
-        "web_url": ""
-      },
-      {
-        "id": "jwt_decoder",
-        "input": "JWT токен (например, eyJhbGciOi...)",
-        "install_guide": {
-          "docker": "# Работает в браузере",
-          "git": "# Встроенный JWT парсер",
-          "notes": "Показывает срок действия токена и скрытые данные пользователя.",
-          "pip_or_pkg": "# Не требуется",
-          "usage": "Вставьте токен для разбора структуры и прав"
-        },
-        "launch": {
-          "action": "open_decoder",
-          "label": "⚡ Разобрать JWT токен",
-          "type": "api"
-        },
-        "name": "🛡️ Просмотр данных в токенах авторизации (JWT Decoder)",
-        "purpose": "🔑 Показывает, какая информация (ID пользователя, права, срок действия) зашита внутри веб-токена авторизации без знания секретного ключа.",
-        "repo": "https://github.com/jwtk/jjwt",
-        "scan_type": "decoder",
-        "web_runnable": true,
-        "web_url": "https://jwt.io/"
-      },
-      {
-        "id": "crypto_forensics",
-        "input": "адрес Bitcoin, Ethereum или TRON кошелька",
-        "install_guide": {
-          "docker": "# Работает автономно",
-          "git": "# Встроенный блокчейн-анализатор",
-          "notes": "Автоматически определяет сеть (BTC, ETH, TRX) и баланс.",
-          "pip_or_pkg": "pip install httpx",
-          "usage": "Введите адрес кошелька для получения сводки движения активов"
-        },
-        "launch": {
-          "action": "scan_crypto",
-          "label": "⚡ Анализ транзакций",
-          "type": "api"
-        },
-        "name": "🪙 Форензика криптокошельков (BTC, ETH, TRON/USDT)",
-        "purpose": "💰 Проверяет историю баланса кошелька, активность за все время и строит удобную финансовую сводку для расследований.",
-        "repo": "https://github.com/blockchair",
-        "scan_type": "crypto",
-        "web_runnable": true,
-        "web_url": "https://blockchair.com/"
-      },
-      {
-        "id": "dorking_wizard",
-        "input": "никнейм человека, ключевое слово или сайт",
-        "install_guide": {
-          "docker": "# Работает в WebApp",
-          "git": "# Встроенный генератор поисковых матриц",
-          "notes": "Позволяет запустить точечный поиск по базам данных в один клик.",
-          "pip_or_pkg": "# Не требуется",
-          "usage": "Введите цель для генерации 25+ боевых дорков с прямыми ссылками"
-        },
-        "launch": {
-          "action": "scan_dorks",
-          "label": "⚡ Сгенерировать поисковые ссылки",
-          "type": "api"
-        },
-        "name": "🧙‍♂️ Мастер поисковых запросов Google и Yandex (Dork Builder)",
-        "purpose": "🎯 Создает специальные готовые запросы для Google и Яндекс, которые в 1 клик находят скрытые документы (.pdf, .xlsx), утекшие пароли и закрытые страницы человека.",
-        "repo": "https://github.com/techgaun/github-dorks",
-        "scan_type": "dorks",
-        "web_runnable": true,
-        "web_url": "https://google.com/"
-      }
-    ]
-  }
-];
-
-let currentSessionUser = 'guest';
-let tgUserId = '';
-let currentUploadedBase64 = '';
-let currentUploadedFileName = '';
-let currentActiveResult = null; // Last scan result for saving
-let currentFolderId = 'all';
-
-// API Base: If opened as local file (file:///), send requests to live backend
-const API_BASE = (window.location.protocol === 'file:' || window.location.hostname === '')
-  ? 'https://osint.qrport.eu'
-  : '';
-
-// Default Folders
-const DEFAULT_FOLDERS = [
-  { id: 'all', name: 'Все расследования', icon: 'fa-folder-open', isSystem: true },
-  { id: 'people', name: 'Люди & Профили', icon: 'fa-user-tag', isSystem: true },
-  { id: 'crypto', name: 'Крипта & AML', icon: 'fa-coins', isSystem: true },
-  { id: 'infra', name: 'Домены, Сайты & IP', icon: 'fa-globe', isSystem: true },
-  { id: 'leaks', name: 'Утечки & Пароли', icon: 'fa-lock-open', isSystem: true },
-  { id: 'geoint', name: 'Фото & GeoINT', icon: 'fa-camera', isSystem: true }
-];
-
-// Helper: Local Storage for Folders & Cases
-function getStoredFolders() {
-  try {
-    const custom = JSON.parse(localStorage.getItem('osint_custom_folders') || '[]');
-    return [...DEFAULT_FOLDERS, ...custom];
-  } catch(e) { return DEFAULT_FOLDERS; }
-}
-
-function saveCustomFolders(folders) {
-  const custom = folders.filter(f => !f.isSystem);
-  localStorage.setItem('osint_custom_folders', JSON.stringify(custom));
-}
-
-function getStoredCases() {
-  try {
-    return JSON.parse(localStorage.getItem('osint_saved_cases') || '[]');
-  } catch(e) { return []; }
-}
-
-function saveStoredCases(cases) {
-  localStorage.setItem('osint_saved_cases', JSON.stringify(cases));
-  updateCasesCountBadge();
-}
-
-function showToast(text) {
-  const toast = document.getElementById('appToast');
-  const span = document.getElementById('toastText');
-  if (span) span.innerText = text;
-  if (toast) {
-    toast.style.display = 'block';
-    setTimeout(() => { toast.style.display = 'none'; }, 2400);
-  }
-}
-
-// =====================================================================
-// --- NAVIGATION & VIEWS ---
-// =====================================================================
-function showView(viewId) {
-  document.querySelectorAll('.view-page').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
-  
-  const target = document.getElementById(viewId);
-  const tabBtn = document.getElementById('tab-' + viewId);
-  if (target) target.classList.add('active');
-  if (tabBtn) tabBtn.classList.add('active');
-
-  if (viewId === 'foldersView') renderFolderCases();
-  if (viewId === 'catalogView') renderCatalog();
-  if (viewId === 'adminView') loadAdminUsers();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-// =====================================================================
-// --- SMART OMNISEARCH INPUT SNIFFER ---
-// =====================================================================
-function sniffTargetType(str) {
-  str = (str || '').trim();
-  if (!str) return null;
-  if (/^(\+7|8|\+380|\+998|\+1|\+44)\d{9,13}$/.test(str.replace(/[\s\-\(\)]/g, ''))) return { type: 'phone', label: 'Телефон', tool: 'phoneinfoga_recon', icon: 'fa-phone' };
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str)) return { type: 'email', label: 'Email', tool: 'holehe_osint', icon: 'fa-envelope' };
-  if (/^(0x[a-fA-F0-9]{40}|1[a-km-zA-HJ-NP-Z1-9]{25,34}|3[a-km-zA-HJ-NP-Z1-9]{25,34}|bc1[a-zA-HJ-NP-Z0-9]{25,59}|T[A-Za-z1-9]{33})$/.test(str)) return { type: 'crypto', label: 'Криптокошелек', tool: 'crypto_aml_auditor', icon: 'fa-coins' };
-  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(str)) return { type: 'ip', label: 'IP Адрес', tool: 'myip_toolbox', icon: 'fa-network-wired' };
-  if (/^([a-zA-Z0-9\-]+\.)+[a-zA-Z]{2,}$/.test(str) && !str.includes('@')) return { type: 'domain', label: 'Домен / Сайт', tool: 'crtsh', icon: 'fa-globe' };
-  if (str.startsWith('@')) return { type: 'telegram', label: 'Telegram', tool: 'tg_inspector', icon: 'fa-brands fa-telegram' };
-  return { type: 'username', label: 'Никнейм / Досье', tool: 'ai_detective_profiler', icon: 'fa-user' };
-}
-
-function handleOmniInput(e) {
-  const val = e.target.value.trim();
-  const badge = document.getElementById('omniTypeBadge');
-  if (!val) {
-    if (badge) badge.style.display = 'none';
-    return;
-  }
-  const detected = sniffTargetType(val);
-  if (detected && badge) {
-    badge.innerText = `Цель: ${detected.label}`;
-    badge.style.display = 'inline-block';
-  }
-}
-
-// Global Clipboard Paste for Image Dropzone
-window.addEventListener('paste', function(e) {
-  const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-  for (let i = 0; i < items.length; i++) {
-    if (items[i].type.indexOf('image') !== -1) {
-      const file = items[i].getAsFile();
-      processImageFile(file);
-      showView('searchView');
-      showToast('Изображение вставлено из буфера!');
-      break;
-    }
-  }
-});
-
-function toggleOmniPhotoSection() {
-  const sec = document.getElementById('omniPhotoSection');
-  if (sec) sec.style.display = (sec.style.display === 'none' ? 'block' : 'none');
-}
-
-function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add('dragover'); }
-function handleDragLeave(e) { e.currentTarget.classList.remove('dragover'); }
-function handleDrop(e) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('dragover');
-  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    processImageFile(e.dataTransfer.files[0]);
-  }
-}
-function handleFileSelected(e) {
-  if (e.target.files && e.target.files[0]) {
-    processImageFile(e.target.files[0]);
-  }
-}
-
-function processImageFile(file) {
-  if (!file) return;
-  currentUploadedFileName = file.name;
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    currentUploadedBase64 = evt.target.result;
-    const prevImg = document.getElementById('omniPhotoPreviewImg');
-    const prevBox = document.getElementById('omniPhotoPreviewBox');
-    const nameLabel = document.getElementById('omniPhotoFileName');
-    const metaLabel = document.getElementById('omniPhotoMeta');
-    const sec = document.getElementById('omniPhotoSection');
-    if (sec) sec.style.display = 'block';
-    if (prevImg) prevImg.src = currentUploadedBase64;
-    if (nameLabel) nameLabel.innerText = file.name;
-    if (metaLabel) metaLabel.innerText = `${Math.round(file.size / 1024)} KB · Face AI Ready`;
-    if (prevBox) prevBox.style.display = 'flex';
-  };
-  reader.readAsDataURL(file);
-}
-
-function clearUploadedPhoto() {
-  currentUploadedBase64 = '';
-  currentUploadedFileName = '';
-  const prevBox = document.getElementById('omniPhotoPreviewBox');
-  if (prevBox) prevBox.style.display = 'none';
-}
-
-// Quick Launch chip clicked
-function quickFillAndScan(toolId) {
-  const input = document.getElementById('omniInput');
-  if (toolId === 'face_search_ai') {
-    toggleOmniPhotoSection();
-    showToast('Прикрепите фото или вставьте через Ctrl+V');
-    return;
-  }
-  if (!input.value.trim()) {
-    const examples = {
-      'ai_detective_profiler': 'durov',
-      'crypto_aml_auditor': '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
-      'tg_activity_tracker': 'durov',
-      'digital_hygiene_audit': 'test@gmail.com',
-      'myip_toolbox': '1.1.1.1'
-    };
-    input.value = examples[toolId] || 'target';
-    handleOmniInput({ target: input });
-  }
-  executeDirectScan(toolId, input.value.trim());
-}
-
-// Smart Scan Runner
-async function runSmartScan() {
-  const target = document.getElementById('omniInput').value.trim();
-  if (!target && !currentUploadedBase64) {
-    alert('Введите никнейм, телефон, email, кошелек или прикрепите фото');
-    return;
-  }
-  if (currentUploadedBase64) {
-    executeDirectScan('face_search_ai', target || currentUploadedFileName);
-    return;
-  }
-  const detected = sniffTargetType(target);
-  const toolId = detected ? detected.tool : 'ai_detective_profiler';
-  executeDirectScan(toolId, target);
-}
-
-// Main API Dispatcher
-async function executeDirectScan(toolId, target) {
-  const loader = document.getElementById('searchLoader');
-  const outBox = document.getElementById('searchResultBox');
-  if (loader) loader.style.display = 'block';
-  if (outBox) outBox.innerHTML = '';
-
-  try {
-    const payload = {
-      tool_id: toolId,
-      target: target || currentUploadedFileName,
-      image_base64: currentUploadedBase64 || '',
-      caller: currentSessionUser
-    };
-
-    const res = await fetch(API_BASE + '/api/scan/universal', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Telegram-User-Id': tgUserId || '5233450569'
-      },
-      body: JSON.stringify(payload)
+      checkAdminStatus();
     });
 
-    const data = await res.json();
-    if (loader) loader.style.display = 'none';
-
-    if (!data.ok) {
-      outBox.innerHTML = `<div class="result-card" style="border-color:var(--danger); color:var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Ошибка: ${data.error || 'Сбой сканирования'}</div>`;
-      return;
+    function haptic(type = 'light') {
+      try {
+        if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.HapticFeedback) {
+          window.Telegram.WebApp.HapticFeedback.impactOccurred(type);
+        }
+      } catch(e) {}
     }
 
-    currentActiveResult = { data, target: target || currentUploadedFileName, toolId, timestamp: new Date().toISOString() };
-    renderUnifiedResult(data, outBox, target || currentUploadedFileName, toolId);
-    initUserProfile(); // update quota
-  } catch(err) {
-    if (loader) loader.style.display = 'none';
-    outBox.innerHTML = `<div class="result-card" style="border-color:var(--danger); color:var(--danger);"><i class="fa-solid fa-triangle-exclamation"></i> Ошибка соединения: ${err.message}</div>`;
-  }
-}
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      document.getElementById('toastText').innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2200);
+    }
 
-// =========================================================
-// --- UNIFIED RESULT RENDERER WITH SAVE TO FOLDER BUTTON ---
-// =========================================================
-function renderUnifiedResult(data, outBox, target, toolId) {
-  const owner = data.probable_owner || 'Субъект анализа';
-  const type = data.type || '';
-  const verdict = data.verdict_summary || data.ai_summary || data.ai_verdict || 'Анализ успешно завершен.';
-  const confidence = data.confidence || '92%';
-  
-  let contentHtml = '';
+    function switchTab(viewName, btnEl) {
+      haptic('light');
+      document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      const target = document.getElementById('view-' + viewName);
+      if (target) target.classList.add('active');
+      if (btnEl) btnEl.classList.add('active');
+      if (viewName === 'admin') loadAdminStats();
+    }
 
-  // 1. Sherlock / Username Profiles Grid
-  if (type === 'username') {
-    const profiles = data.profiles || [];
-    let grid = '<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:6px; margin-top:8px;">';
-    profiles.forEach(p => {
-      grid += `
-        <div style="background:#07090e; border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <div style="font-size:11px; font-weight:700; color:#fff;">${p.platform}</div>
-            <div style="font-size:9px; color:var(--text-muted);">${p.category || 'Профиль'}</div>
-          </div>
-          <button class="btn btn-primary btn-sm" onclick="openExternalUrl('${p.url}')"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>
-        </div>
-      `;
-    });
-    grid += '</div>';
-    contentHtml = `
-      <div style="font-size:11px; font-weight:800; color:#fff; margin-bottom:4px;">🌐 Обнаружено аккаунтов: <span style="color:var(--primary);">${profiles.length}</span></div>
-      ${grid}
-    `;
-  }
-  // 2. Crypto AML
-  else if (type === 'crypto_aml') {
-    const score = data.aml_risk_score || 0;
-    const isDanger = score > 60;
-    contentHtml = `
-      <div class="stat-grid">
-        <div class="stat-box">
-          <div class="stat-label">Индекс AML Риска</div>
-          <div class="stat-val" style="color:${isDanger ? 'var(--danger)' : 'var(--green)'}; font-size:14px;">${score}% / 100%</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Категория риска</div>
-          <div class="stat-val" style="color:${isDanger ? 'var(--danger)' : 'var(--green)'};">${data.risk_level || 'Низкий риск'}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Криптовалюта</div>
-          <div class="stat-val">${data.coin || 'BTC / ETH / USDT'}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Баланс / Транзакции</div>
-          <div class="stat-val">${data.tx_count || 0} операций</div>
-        </div>
-      </div>
-      <div style="background:#07090e; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border); font-size:11px; color:#cbd5e1; line-height:1.5;">
-        ${data.recommendation || 'Кошелек проверен по санкционным спискам OFAC и даркнет-миксерам.'}
-      </div>
-    `;
-  }
-  // 3. Face AI & Biometrics
-  else if (type === 'face_search') {
-    contentHtml = `
-      <div class="stat-grid">
-        <div class="stat-box">
-          <div class="stat-label">Вердикт подлинности</div>
-          <div class="stat-val" style="color:${data.is_ai_generated ? 'var(--danger)' : 'var(--green)'};">${data.ai_verdict || 'Натуральное фото'}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Вероятность Deepfake</div>
-          <div class="stat-val" style="color:${data.is_ai_generated ? 'var(--danger)' : 'var(--green)'};">${data.deepfake_probability || '12%'}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Примерный возраст</div>
-          <div class="stat-val">${data.estimated_age || '25-30 лет'}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Симметрия лица</div>
-          <div class="stat-val" style="color:var(--primary);">${data.facial_symmetry || '94%'}</div>
-        </div>
-      </div>
-    `;
-  }
-  // 4. Default / Telegram / Phone / Email / AI Profiler
-  else {
-    contentHtml = `
-      <div class="stat-grid">
-        <div class="stat-box">
-          <div class="stat-label">Тип объекта</div>
-          <div class="stat-val" style="color:var(--primary);">${data.entity_type || type || 'Идентификатор'}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Юрисдикция / Регион</div>
-          <div class="stat-val">${data.jurisdiction || data.country || 'Глобальная сеть'}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Достоверность данных</div>
-          <div class="stat-val" style="color:var(--green);">${confidence}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-label">Статус проверки</div>
-          <div class="stat-val" style="color:var(--green);">🟢 ВАЛИДИРОВАНО</div>
-        </div>
-      </div>
-      <div style="background:#07090e; padding:10px; border-radius:var(--radius-sm); border:1px solid var(--border); font-size:11px; color:#cbd5e1; line-height:1.5;">
-        ${verdict}
-      </div>
-    `;
-  }
+    function openAdminTab() {
+      switchTab('admin', document.getElementById('navAdminTabBtn'));
+    }
 
-  // Quick Action Buttons (Save to Folder, Add to Graph, Copy, Terminal)
-  const toolbar = `
-    <div class="result-header-toolbar">
-      <div class="result-title">
-        <i class="fa-solid fa-crosshairs" style="color:var(--primary);"></i>
-        <span>${owner}</span>
-        <span style="font-size:9px; color:var(--text-muted); font-family:var(--font-mono);">(${target})</span>
-      </div>
-      <div style="display:flex; gap:6px; flex-wrap:wrap;">
-        <button class="btn btn-yellow btn-sm" onclick="openSaveCaseModal()"><i class="fa-solid fa-folder-plus"></i> В папку</button>
-        <button class="btn btn-secondary btn-sm" onclick="sendResultToGraph()"><i class="fa-solid fa-circle-nodes"></i> В граф</button>
-        <button class="btn btn-secondary btn-sm" onclick="copyResultSummary()"><i class="fa-solid fa-copy"></i> Копировать</button>
-        <button class="btn btn-secondary btn-sm" onclick="toggleResultCli()" id="cliToggleToolbarBtn"><i class="fa-solid fa-terminal"></i> Терминал</button>
-      </div>
-    </div>
-  `;
+    // --- 1. DOWNLOADER ENGINE ---
+    async function pasteClipboard() {
+      try {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          document.getElementById('dlUrlInput').value = text;
+          showToast('Ссылка вставлена');
+        }
+      } catch(e) {
+        showToast('Вставьте вручную в поле');
+      }
+    }
 
-  const cliLogText = data.raw_cli_output || generateClientCliOutput(data, target, toolId);
+    async function startDownload(isAudio) {
+      haptic('medium');
+      const input = document.getElementById('dlUrlInput');
+      const url = (input.value || '').trim();
+      if (!url) return alert('Пожалуйста, вставьте ссылку на видео или аудио');
 
-  const terminalBlock = `
-    <div class="terminal-container" style="margin-top:12px; background:#040609; border:1px solid #1e293b; border-radius:var(--radius-sm); overflow:hidden;">
-      <div style="background:#0b1120; padding:6px 12px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #1e293b;">
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
-          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>
-          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
-          <span style="font-family:var(--font-mono); font-size:10px; color:#94a3b8; margin-left:6px;"><i class="fa-solid fa-terminal" style="color:var(--primary);"></i> bash — OSINT FORENSIC TERMINAL</span>
-        </div>
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-secondary btn-sm" onclick="copyResultCli()" style="padding:2px 8px; font-size:10px;"><i class="fa-solid fa-copy"></i> Скопировать CLI лог</button>
-          <button class="btn btn-secondary btn-sm" onclick="toggleResultCli()" id="cliToggleBtn" style="padding:2px 8px; font-size:10px;"><i class="fa-solid fa-chevron-up"></i> Свернуть</button>
-        </div>
-      </div>
-      <pre id="resultCliBox" class="cli-box" style="margin:0; border:none; border-radius:0; max-height:260px; overflow-y:auto; padding:12px; font-family:var(--font-mono); font-size:11px; color:#38bdf8; background:#040609; line-height:1.5; white-space:pre-wrap;">${escapeHtml(cliLogText)}</pre>
-    </div>
-  `;
+      const loadingBox = document.getElementById('dlLoadingBox');
+      const resultBox = document.getElementById('dlResultBox');
+      const loadingText = document.getElementById('dlLoadingText');
 
-  outBox.innerHTML = `
-    <div class="result-card">
-      ${toolbar}
-      ${contentHtml}
-      ${terminalBlock}
-    </div>
-  `;
-}
+      loadingBox.style.display = 'block';
+      resultBox.classList.remove('active');
+      loadingText.innerText = isAudio ? 'Конвертация и извлечение MP3...' : 'Скачивание чистого видео без водяных знаков...';
 
-function generateClientCliOutput(data, target, toolId) {
-  const ts = new Date().toISOString().replace('T', ' ').substring(0, 19);
-  let lines = [
-    `root@cyberhub:~# osint-recon --target "${target}" --tool ${toolId || 'auto'}`,
-    `[${ts}] [INIT] Initializing OSINT Forensic Engine v3.0...`,
-    `[${ts}] [INFO] Target vector: ${target} [Entity: ${data.entity_type || data.type || 'network_subject'}]`,
-    `[${ts}] [EXEC] Querying 480+ intelligence registries, threat feeds & metadata caches...`
-  ];
+      try {
+        const res = await fetch('/api/multitool/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url, extract_audio: isAudio })
+        });
+        const data = await res.json();
+        loadingBox.style.display = 'none';
 
-  if (data.profiles && data.profiles.length) {
-    data.profiles.forEach(p => lines.push(`[+] [FOUND] ${p.platform}: ${p.url}`));
-    lines.push(`[*] Total verified profiles: ${data.profiles.length}`);
-  } else if (data.aml_risk_score !== undefined) {
-    lines.push(`[+] [AML] Risk Score: ${data.aml_risk_score}% | Level: ${data.risk_level || 'OK'}`);
-    lines.push(`[+] [CHAIN] ${data.coin || 'CRYPTO'} Transactions: ${data.tx_count || 0}`);
-  } else if (data.deepfake_probability !== undefined) {
-    lines.push(`[+] [BIOMETRICS] Face detected | Deepfake: ${data.deepfake_probability}`);
-    lines.push(`[+] [VERDICT] ${data.ai_verdict || 'OK'}`);
-  } else {
-    lines.push(`[+] [STATUS] Validated: ${data.verdict_summary || data.ai_summary || 'Inspection complete.'}`);
-  }
-  lines.push(`[✓] Operation completed successfully [Status: 200 OK].`);
-  return lines.join('\n');
-}
+        if (!data.ok) {
+          alert('Ошибка: ' + (data.error || 'Не удалось скачать медиа'));
+          return;
+        }
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
+        currentLastDlUrl = data.filepath ? ('/api/multitool/file?p=' + encodeURIComponent(data.filepath)) : url;
+        document.getElementById('dlTitle').innerText = data.title || 'Файл готов';
+        document.getElementById('dlAuthor').innerHTML = `<i class="fa-solid fa-user"></i> Автор: ${data.uploader || 'N/A'}`;
+        const mb = (data.filesize / (1024 * 1024)).toFixed(1);
+        document.getElementById('dlSize').innerHTML = `<i class="fa-solid fa-file"></i> ${mb} МБ (${data.format || 'MP4'})`;
 
-function toggleResultCli() {
-  const el = document.getElementById('resultCliBox');
-  const btn = document.getElementById('cliToggleBtn');
-  if (el) {
-    const isHidden = el.style.display === 'none';
-    el.style.display = isHidden ? 'block' : 'none';
-    if (btn) btn.innerHTML = isHidden ? '<i class="fa-solid fa-chevron-up"></i> Свернуть' : '<i class="fa-solid fa-chevron-down"></i> Развернуть';
-  }
-}
+        const thumb = document.getElementById('dlThumb');
+        if (data.thumbnail) {
+          thumb.src = data.thumbnail;
+          thumb.style.display = 'block';
+        } else {
+          thumb.style.display = 'none';
+        }
 
-function copyResultCli() {
-  const el = document.getElementById('resultCliBox');
-  if (!el) return;
-  navigator.clipboard.writeText(el.innerText || el.textContent);
-  showToast('Терминальный лог скопирован в буфер обмена!');
-}
+        const saveBtn = document.getElementById('dlSaveBtn');
+        saveBtn.href = currentLastDlUrl;
+        resultBox.classList.add('active');
+        showToast('Медиа готово!');
+      } catch(e) {
+        loadingBox.style.display = 'none';
+        alert('Сбой связи с сервером: ' + e.message);
+      }
+    }
 
-function copyResultSummary() {
-  if (!currentActiveResult) return;
-  const t = currentActiveResult.target;
-  const d = currentActiveResult.data;
-  const text = `[OSINT DOSSIER] Цель: ${t}
-Владелец: ${d.probable_owner || 'Не указан'}
-Вердикт: ${d.verdict_summary || d.ai_verdict || 'OK'}`;
-  navigator.clipboard.writeText(text);
-  showToast('Сводка скопирована в буфер обмена!');
-}
+    function copyDlLink() {
+      if (!currentLastDlUrl) return;
+      navigator.clipboard.writeText(window.location.origin + currentLastDlUrl);
+      showToast('Ссылка скопирована');
+    }
 
-function sendResultToGraph() {
-  if (!currentActiveResult) return;
-  const t = currentActiveResult.target;
-  document.getElementById('graphTargetInput').value = t;
-  showView('graphView');
-  runGraphDirectScan();
-}
-
-// =====================================================================
-// --- FOLDERS SYSTEM IMPLEMENTATION (ПАПКИ) ---
-// =====================================================================
-function openSaveCaseModal() {
-  if (!currentActiveResult) {
-    alert('Сначала выполните поиск цели');
-    return;
-  }
-  const modal = document.getElementById('saveCaseModal');
-  const targetLabel = document.getElementById('modalSaveTarget');
-  const select = document.getElementById('modalFolderSelect');
-  
-  if (targetLabel) targetLabel.innerText = currentActiveResult.target;
-  
-  const folders = getStoredFolders();
-  select.innerHTML = '';
-  folders.forEach(f => {
-    if (f.id === 'all') return;
-    const opt = document.createElement('option');
-    opt.value = f.id;
-    opt.innerText = f.name;
-    select.appendChild(opt);
-  });
-
-  // Auto-select folder by target type
-  const detected = sniffTargetType(currentActiveResult.target);
-  if (detected) {
-    const map = { 'phone': 'people', 'email': 'people', 'crypto': 'crypto', 'ip': 'infra', 'domain': 'infra', 'telegram': 'people', 'username': 'people' };
-    if (map[detected.type]) select.value = map[detected.type];
-  }
-
-  if (modal) modal.style.display = 'flex';
-}
-
-function closeSaveCaseModal() {
-  const m = document.getElementById('saveCaseModal');
-  if (m) m.style.display = 'none';
-}
-
-function commitSaveCase() {
-  if (!currentActiveResult) return;
-  const folderId = document.getElementById('modalFolderSelect').value || 'people';
-  const notes = document.getElementById('modalCaseNotes').value.trim();
-  const cases = getStoredCases();
-
-  const newCase = {
-    id: 'case_' + Date.now(),
-    folderId: folderId,
-    target: currentActiveResult.target,
-    toolId: currentActiveResult.toolId,
-    data: currentActiveResult.data,
-    notes: notes,
-    createdAt: new Date().toISOString()
-  };
-
-  cases.unshift(newCase);
-  saveStoredCases(cases);
-  closeSaveCaseModal();
-  showToast(`Сохранено в папку!`);
-}
-
-function openNewFolderModal() {
-  const m = document.getElementById('newFolderModal');
-  if (m) m.style.display = 'flex';
-}
-
-function closeNewFolderModal() {
-  const m = document.getElementById('newFolderModal');
-  if (m) m.style.display = 'none';
-}
-
-function commitCreateFolder() {
-  const name = document.getElementById('newFolderNameInput').value.trim();
-  if (!name) {
-    alert('Введите название папки');
-    return;
-  }
-  const folders = getStoredFolders();
-  const newFolder = {
-    id: 'folder_' + Date.now(),
-    name: name,
-    icon: 'fa-folder',
-    isSystem: false
-  };
-  folders.push(newFolder);
-  saveCustomFolders(folders);
-  closeNewFolderModal();
-  document.getElementById('newFolderNameInput').value = '';
-  renderFolderCases();
-  showToast(`Папка "${name}" создана!`);
-}
-
-function renderFolderCases() {
-  const pillsRow = document.getElementById('folderPillsRow');
-  const container = document.getElementById('folderCasesContainer');
-  const search = (document.getElementById('folderSearchInput').value || '').toLowerCase().trim();
-  const folders = getStoredFolders();
-  const allCases = getStoredCases();
-
-  // Render Folder Pills
-  pillsRow.innerHTML = '';
-  folders.forEach(f => {
-    const count = f.id === 'all' ? allCases.length : allCases.filter(c => c.folderId === f.id).length;
-    const pill = document.createElement('div');
-    pill.className = `folder-pill ${currentFolderId === f.id ? 'active' : ''}`;
-    pill.onclick = () => { currentFolderId = f.id; renderFolderCases(); };
-    pill.innerHTML = `<i class="fa-solid ${f.icon}"></i> ${f.name} <span class="folder-pill-count">${count}</span>`;
-    pillsRow.appendChild(pill);
-  });
-
-  // Filter cases
-  let cases = currentFolderId === 'all' ? allCases : allCases.filter(c => c.folderId === currentFolderId);
-  if (search) {
-    cases = cases.filter(c => c.target.toLowerCase().includes(search) || (c.notes && c.notes.toLowerCase().includes(search)));
-  }
-
-  document.getElementById('folderCasesCountLabel').innerText = `${cases.length} расследований`;
-
-  if (cases.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state">
-        <i class="fa-solid fa-folder-open"></i>
-        <div style="font-weight:700; font-size:12px; color:#fff; margin-bottom:4px;">В этой папке пока нет расследований</div>
-        <div style="font-size:10px;">Проведите поиск в разделе «Поиск» и нажмите «В папку»</div>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = '';
-  cases.forEach(c => {
-    const card = document.createElement('div');
-    card.className = 'case-card';
-    const dateStr = new Date(c.createdAt).toLocaleDateString('ru-RU', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-    const verdict = c.data ? (c.data.verdict_summary || c.data.ai_verdict || 'Анализ сохранен') : 'Данные сохранены';
-
-    card.innerHTML = `
-      <div class="case-card-header">
-        <div>
-          <div class="case-target-title">
-            <i class="fa-solid fa-crosshairs" style="color:var(--primary);"></i>
-            ${c.target}
-          </div>
-          <div class="case-meta">
-            <span><i class="fa-solid fa-clock"></i> ${dateStr}</span>
-            <span><i class="fa-solid fa-toolbox"></i> ${c.toolId}</span>
-          </div>
-        </div>
-        <button class="btn btn-danger btn-sm" onclick="deleteCase('${c.id}')" title="Удалить"><i class="fa-solid fa-trash"></i></button>
-      </div>
-      ${c.notes ? `<div class="case-note"><i class="fa-solid fa-quote-left" style="color:var(--primary);"></i> ${c.notes}</div>` : ''}
-      <div style="font-size:11px; color:#cbd5e1; line-height:1.4;">${verdict.substring(0, 180)}...</div>
-      <div class="case-actions">
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-primary btn-sm" onclick="reopenCase('${c.id}')"><i class="fa-solid fa-eye"></i> Открыть досье</button>
-          <button class="btn btn-secondary btn-sm" onclick="sendSavedCaseToGraph('${c.id}')"><i class="fa-solid fa-circle-nodes"></i> В граф</button>
-        </div>
-        <button class="btn btn-secondary btn-sm" onclick="copySavedCase('${c.id}')"><i class="fa-solid fa-copy"></i> Копировать</button>
-      </div>
-    `;
-    container.appendChild(card);
-  });
-}
-
-function updateCasesCountBadge() {
-  const b = document.getElementById('totalCasesBadge');
-  if (b) b.innerText = getStoredCases().length;
-}
-
-function deleteCase(caseId) {
-  if (!confirm('Удалить расследование из папки?')) return;
-  const cases = getStoredCases().filter(c => c.id !== caseId);
-  saveStoredCases(cases);
-  renderFolderCases();
-  showToast('Расследование удалено');
-}
-
-function reopenCase(caseId) {
-  const c = getStoredCases().find(x => x.id === caseId);
-  if (!c || !c.data) return;
-  currentActiveResult = { data: c.data, target: c.target, toolId: c.toolId, timestamp: c.createdAt };
-  showView('searchView');
-  const outBox = document.getElementById('searchResultBox');
-  renderUnifiedResult(c.data, outBox, c.target, c.toolId);
-  showToast(`Досье "${c.target}" загружено`);
-}
-
-function sendSavedCaseToGraph(caseId) {
-  const c = getStoredCases().find(x => x.id === caseId);
-  if (!c) return;
-  document.getElementById('graphTargetInput').value = c.target;
-  showView('graphView');
-  runGraphDirectScan();
-}
-
-function copySavedCase(caseId) {
-  const c = getStoredCases().find(x => x.id === caseId);
-  if (!c) return;
-  const text = `[КЕЙС OSINT]
-Цель: ${c.target}
-Папка: ${c.folderId}
-Заметка: ${c.notes || '-'}
-Дата: ${c.createdAt}
-Данные: ${JSON.stringify(c.data, null, 2)}`;
-  navigator.clipboard.writeText(text);
-  showToast('Кейс скопирован в буфер обмена!');
-}
-
-function exportCurrentFolder() {
-  const allCases = getStoredCases();
-  const cases = currentFolderId === 'all' ? allCases : allCases.filter(c => c.folderId === currentFolderId);
-  if (cases.length === 0) {
-    alert('Папка пуста для экспорта');
-    return;
-  }
-  let md = `# OSINT INVESTIGATION EXPORT // ${currentFolderId.toUpperCase()}
-`;
-  md += `Дата экспорта: ${new Date().toLocaleString()}
-`;
-  md += `Всего кейсов: ${cases.length}
-
----
-
-`;
-
-  cases.forEach((c, i) => {
-    md += `## ${i+1}. Цель: ${c.target}
-`;
-    md += `- **Модуль:** ${c.toolId}
-`;
-    md += `- **Дата:** ${c.createdAt}
-`;
-    if (c.notes) md += `- **Заметка:** ${c.notes}
-`;
-    md += `- **Вердикт:** ${c.data.verdict_summary || c.data.ai_verdict || 'OK'}
-
-`;
-  });
-
-  const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `OSINT_Folder_${currentFolderId}_${Date.now()}.md`;
-  a.click();
-  showToast('Отчет экспортирован в Markdown!');
-}
-
-// =====================================================================
-// --- CATALOG VIEW ---
-// =====================================================================
-let currentCatalogFilter = 'all';
-
-function setCatalogFilter(catId, btn) {
-  currentCatalogFilter = catId;
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderCatalog();
-}
-
-function renderCatalog() {
-  const container = document.getElementById('catalogCardsContainer');
-  const q = (document.getElementById('catalogSearchInput').value || '').toLowerCase().trim();
-  container.innerHTML = '';
-
-  FULL_CATALOG.forEach(group => {
-    if (currentCatalogFilter !== 'all' && group.id !== currentCatalogFilter) return;
-
-    let matchedTools = group.tools.filter(t => {
-      if (!q) return true;
-      return t.name.toLowerCase().includes(q) || t.purpose.toLowerCase().includes(q) || (t.input && t.input.toLowerCase().includes(q));
-    });
-
-    if (matchedTools.length === 0) return;
-
-    const gBlock = document.createElement('div');
-    gBlock.innerHTML = `<div class="group-title"><i class="fa-solid fa-chevron-right"></i> ${group.title} (${matchedTools.length})</div>`;
-    
-    const grid = document.createElement('div');
-    grid.className = 'cards-grid';
-
-    matchedTools.forEach(t => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.onclick = () => {
-        document.getElementById('omniInput').value = '';
-        document.getElementById('omniInput').placeholder = `Введите ${t.input || 'цель'} для ${t.name}...`;
-        showView('searchView');
-        quickFillAndScan(t.id);
-      };
-
-      card.innerHTML = `
-        <div>
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:6px;">
-            <div class="card-title">${t.name}</div>
-            <span class="badge badge-api">${t.scan_type || 'API'}</span>
-          </div>
-          <div class="card-purpose">${t.purpose}</div>
-        </div>
-        <div style="display:flex; justify-content:space-between; align-items:center;">
-          <span style="font-size:9px; color:var(--primary); font-family:var(--font-mono);">${t.input || 'строка'}</span>
-          <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); quickFillAndScan('${t.id}')">Запуск</button>
-        </div>
-      `;
-      grid.appendChild(card);
-    });
-
-    gBlock.appendChild(grid);
-    container.appendChild(gBlock);
-  });
-}
-
-// =====================================================================
-// --- VIS.JS NETWORK GRAPH ---
-// =====================================================================
-let networkInstance = null;
-
-function clearGraph() {
-  const container = document.getElementById('visNetworkCanvas');
-  container.innerHTML = '';
-  document.getElementById('graphDossierBox').style.display = 'none';
-}
-
-async function runGraphDirectScan() {
-  const target = document.getElementById('graphTargetInput').value.trim();
-  if (!target) return alert('Введите никнейм или email для построения графа');
-
-  const container = document.getElementById('visNetworkCanvas');
-  try {
-    const res = await fetch(API_BASE + '/api/scan/universal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Telegram-User-Id': tgUserId || '5233450569' },
-      body: JSON.stringify({ tool_id: 'autorecon', target: target, caller: currentSessionUser })
-    });
-    const data = await res.json();
-    if (!data.ok) return alert('Ошибка построения связей');
-
-    const nodes = [{ id: 1, label: target, color: '#38bdf8', shape: 'box', font: { color: '#fff', face: 'monospace' } }];
-    const edges = [];
-    let idx = 2;
-
-    (data.profiles || []).slice(0, 14).forEach(p => {
-      nodes.push({ id: idx, label: p.platform, color: '#10b981', shape: 'dot' });
-      edges.push({ from: 1, to: idx });
-      idx++;
-    });
-
-    if (data.emails) {
-      data.emails.forEach(e => {
-        nodes.push({ id: idx, label: e, color: '#f59e0b', shape: 'diamond' });
-        edges.push({ from: 1, to: idx });
-        idx++;
+    // --- 2. TOOLS SUBVIEWS ---
+    function openTool(toolName) {
+      haptic('light');
+      ['mail', 'pass', 'qr', 'cleaner'].forEach(t => {
+        const box = document.getElementById('toolBox-' + t);
+        if (box) box.style.display = (t === toolName ? 'block' : 'none');
       });
+      if (toolName === 'pass') generateNewPassword();
     }
 
-    const dataSet = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
-    const options = {
-      physics: { stabilization: true },
-      nodes: { font: { color: '#ffffff' } },
-      edges: { color: '#334155' }
-    };
-    networkInstance = new vis.Network(container, dataSet, options);
+    // Temp Mail
+    async function generateTempMail() {
+      haptic('light');
+      const addr = document.getElementById('tempMailAddr');
+      addr.value = 'Создание ящика...';
+      try {
+        const r = await fetch('/api/multitool/tempmail/new');
+        const d = await r.json();
+        if (d.ok) {
+          addr.value = d.email;
+          currentTempMailToken = d.token;
+          showToast('Новый ящик готов');
+        }
+      } catch(e) {}
+    }
 
-    const dBox = document.getElementById('graphDossierBox');
-    const dContent = document.getElementById('graphDossierContent');
-    dContent.innerText = data.ai_dossier || 'Граф сформирован на основе открытых связей платформы.';
-    dBox.style.display = 'block';
-  } catch(e) { alert('Ошибка построения графа'); }
-}
-
-function exportCurrentGraph() {
-  if (!networkInstance) return alert('Сначала постройте граф');
-  const canvas = document.querySelector('#visNetworkCanvas canvas');
-  if (!canvas) return;
-  const img = canvas.toDataURL('image/png');
-  const a = document.createElement('a');
-  a.href = img;
-  a.download = `OSINT_Graph_${Date.now()}.png`;
-  a.click();
-}
-
-// =====================================================================
-// --- DECODERS (CYBER LAB) ---
-// =====================================================================
-async function runDecoderAction(action) {
-  const data = document.getElementById('decoderInputData').value.trim();
-  if (!data) return alert('Введите данные для обработки');
-
-  try {
-    const res = await fetch(API_BASE + '/api/tools/decode', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: action, data: data })
-    });
-    const js = await res.json();
-    const box = document.getElementById('decoderResultBox');
-    const pre = document.getElementById('decoderOutputPre');
-    box.style.display = 'block';
-    pre.innerText = JSON.stringify(js.result || js.possible_algorithms || js.header || js, null, 2);
-  } catch(e) { alert('Ошибка декодера'); }
-}
-
-// =====================================================================
-// --- USER & ADMIN MANAGEMENT ---
-// =====================================================================
-async function initUserProfile() {
-  try {
-    if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe) {
-      const tu = window.Telegram.WebApp.initDataUnsafe.user;
-      if (tu) {
-        tgUserId = String(tu.id);
-        currentSessionUser = tu.username || String(tu.id);
+    function copyTempMail() {
+      const val = document.getElementById('tempMailAddr').value;
+      if (val && !val.includes('Нажмите')) {
+        navigator.clipboard.writeText(val);
+        showToast('Email скопирован');
       }
     }
-    const r = await fetch(`${API_BASE}/api/auth/me?caller=${encodeURIComponent(currentSessionUser)}&tg_id=${encodeURIComponent(tgUserId)}`);
-    const data = await r.json();
-    if (data.ok && data.user) {
-      const u = data.user;
-      document.getElementById('currentUsernameSpan').innerText = u.nickname || u.username || 'Агент';
-      const qSpan = document.getElementById('quotaSpan');
-      if (u.is_unlimited || u.role === 'admin' || u.role === 'vip') {
-        qSpan.innerText = 'VIP ∞';
-      } else {
-        qSpan.innerText = `${u.scan_balance} Запросов`;
+
+    async function fetchTempMessages() {
+      if (!currentTempMailToken) return showToast('Сначала создайте ящик');
+      try {
+        const r = await fetch('/api/multitool/tempmail/messages?token=' + encodeURIComponent(currentTempMailToken));
+        const d = await r.json();
+        const box = document.getElementById('tempMailInbox');
+        if (d.ok && d.messages && d.messages.length) {
+          box.innerHTML = d.messages.map(m => `
+            <div style="padding:6px 0; border-bottom:1px solid var(--border);">
+              <b>${m.from}</b>: ${m.subject}
+            </div>
+          `).join('');
+        } else {
+          box.innerText = 'Писем пока нет. Ящик проверяется автоматически.';
+        }
+      } catch(e) {}
+    }
+
+    // Password Gen
+    async function generateNewPassword() {
+      try {
+        const r = await fetch('/api/multitool/password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ length: 18, use_upper: true, use_digits: true, use_symbols: true })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          document.getElementById('passResult').value = d.password;
+          document.getElementById('passStrength').innerText = `Стойкость: ${d.strength} (Энтропия: ${d.entropy} бит)`;
+        }
+      } catch(e) {}
+    }
+
+    function copyPassword() {
+      const p = document.getElementById('passResult').value;
+      if (p) {
+        navigator.clipboard.writeText(p);
+        showToast('Пароль скопирован');
       }
-      if (u.role === 'admin') {
-        document.getElementById('navAdminBtn').style.display = 'inline-flex';
+    }
+
+    // QR Gen
+    async function createQRCode() {
+      haptic('light');
+      const val = (document.getElementById('qrTextInput').value || '').trim();
+      if (!val) return alert('Введите текст или ссылку');
+      try {
+        const res = await fetch('/api/multitool/qr', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: val })
+        });
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        document.getElementById('qrImg').src = url;
+        document.getElementById('qrDownloadLink').href = url;
+        document.getElementById('qrPreviewWrap').style.display = 'block';
+        showToast('QR-код создан!');
+      } catch(e) {}
+    }
+
+    // Link Cleaner
+    function cleanTrackingUrl() {
+      haptic('light');
+      const raw = (document.getElementById('cleanerInput').value || '').trim();
+      if (!raw) return alert('Вставьте ссылку');
+      try {
+        const u = new URL(raw.startsWith('http') ? raw : 'https://' + raw);
+        const paramsToDelete = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'si', 'igsh', 'fbclid', 'gclid', 'ref'];
+        paramsToDelete.forEach(p => u.searchParams.delete(p));
+        const cleaned = u.toString();
+        document.getElementById('cleanedUrlResult').value = cleaned;
+        document.getElementById('cleanerResultWrap').style.display = 'block';
+        showToast('Трекеры удалены!');
+      } catch(e) {
+        alert('Некорректная ссылка');
       }
     }
-  } catch(e) {}
-}
 
-function handleUserBadgeClick() {
-  const role = prompt('Вход для администратора (введите пароль):');
-  if (!role) return;
-  fetch(API_BASE + '/api/auth/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: 'admin', password: role })
-  }).then(r => r.json()).then(d => {
-    if (d.ok) {
-      currentSessionUser = 'admin';
-      localStorage.setItem('admin_token', role);
-      initUserProfile();
-      showView('adminView');
-      showToast('Авторизован как Администратор');
-    } else alert('Неверный пароль');
-  });
-}
+    function copyCleanedUrl() {
+      const v = document.getElementById('cleanedUrlResult').value;
+      navigator.clipboard.writeText(v);
+      showToast('Чистая ссылка скопирована');
+    }
 
-function openStarsModal() { document.getElementById('starsModal').style.display = 'flex'; }
-function closeStarsModal() { document.getElementById('starsModal').style.display = 'none'; }
+    // --- 3. AI SUMMARY ---
+    async function generateSummary() {
+      haptic('medium');
+      const target = (document.getElementById('aiSummaryInput').value || '').trim();
+      if (!target) return alert('Вставьте ссылку или текст');
+      const resBox = document.getElementById('aiResultBox');
+      const content = document.getElementById('aiSummaryContent');
+      content.innerText = 'Анализ текста...';
+      resBox.classList.add('active');
 
-async function buyStarsPkg(pkgKey) {
-  const prices = { pkg_20: 35, pkg_50: 88, pkg_100: 235 };
-  const stars = prices[pkgKey] || 35;
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openInvoice) {
-    window.Telegram.WebApp.openInvoice('https://t.me/$' + pkgKey, function(status) {
-      if (status === 'paid') {
-        showToast('Оплата успешно получена! Баланс пополнен.');
-        initUserProfile();
+      try {
+        const r = await fetch('/api/multitool/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target: target })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          document.getElementById('aiSummaryTitle').innerText = d.title || 'Главные тезисы';
+          const points = (d.key_points || []).map(p => `• ${p}`).join('<br><br>');
+          content.innerHTML = points || d.summary_preview;
+          showToast('Анализ завершен!');
+        } else {
+          content.innerText = 'Ошибка: ' + d.error;
+        }
+      } catch(e) {
+        content.innerText = 'Сбой анализа: ' + e.message;
       }
-    });
-  } else {
-    alert(`Оплата ${stars} ⭐️ Telegram Stars доступна при открытии бота в Telegram (@...)`);
-  }
-}
-
-function getAdminHeaders() {
-  const h = { 'Content-Type': 'application/json' };
-  if (tgUserId) h['X-Telegram-User-Id'] = tgUserId;
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
-    h['X-Telegram-Init-Data'] = window.Telegram.WebApp.initData;
-  }
-  const token = localStorage.getItem('admin_token');
-  if (token) h['X-Admin-Token'] = token;
-  return h;
-}
-
-async function loadAdminSystemStats() {
-  try {
-    const r = await fetch(API_BASE + '/api/admin/stats', { headers: getAdminHeaders() });
-    const js = await r.json();
-    if (js.ok) {
-      const uEl = document.getElementById('admStatUsers');
-      const vEl = document.getElementById('admStatVip');
-      const sEl = document.getElementById('admStatScans');
-      const dEl = document.getElementById('admStatDisk');
-      if (uEl) uEl.innerText = js.total_users || 0;
-      if (vEl) vEl.innerText = js.vip_users || 0;
-      if (sEl) sEl.innerText = js.total_scans || 0;
-      if (dEl) dEl.innerText = `${js.disk_free_gb || 0} ГБ`;
-    }
-  } catch(e) {}
-}
-
-async function submitAdminBroadcast() {
-  const text = (document.getElementById('admBroadcastText').value || '').trim();
-  const btnText = (document.getElementById('admBroadcastBtnText').value || '').trim();
-  const btnUrl = (document.getElementById('admBroadcastBtnUrl').value || '').trim();
-  const statusEl = document.getElementById('admBroadcastStatus');
-
-  if (!text) return alert('Введите текст сообщения для рассылки');
-  if (btnText && !btnUrl) return alert('Если указан текст кнопки, укажите и ссылку');
-
-  statusEl.innerText = 'Отправка рассылки пользователям...';
-  try {
-    const r = await fetch(API_BASE + '/api/admin/broadcast', {
-      method: 'POST',
-      headers: getAdminHeaders(),
-      body: JSON.stringify({ message: text, button_text: btnText || null, button_url: btnUrl || null })
-    });
-    const js = await r.json();
-    if (js.ok) {
-      statusEl.innerHTML = `<span style="color:#10b981;">✓ Успешно отправлено: ${js.sent} из ${js.total} (ошибок: ${js.failed})</span>`;
-      showToast('Рассылка успешно выполнена!');
-      document.getElementById('admBroadcastText').value = '';
-    } else {
-      statusEl.innerHTML = `<span style="color:var(--danger);">Ошибка: ${js.error || 'Сбой рассылки'}</span>`;
-    }
-  } catch(e) {
-    statusEl.innerText = 'Ошибка сети: ' + e.message;
-  }
-}
-
-async function loadAdminUsers() {
-  loadAdminSystemStats();
-  try {
-    const r = await fetch(API_BASE + '/api/admin/users', { headers: getAdminHeaders() });
-    const js = await r.json();
-    const tbody = document.getElementById('usersTableBody');
-    tbody.innerHTML = '';
-    (js.users || []).forEach(u => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td style="font-weight:700; color:#fff;">${u.username}</td>
-        <td>${u.notes || u.tg_id || '-'}</td>
-        <td style="color:var(--amber);">${u.is_unlimited ? 'VIP ∞' : (u.scan_balance + ' ск.')}</td>
-        <td><span class="badge ${u.status === 'active' ? 'badge-api' : 'badge-photo'}">${u.status}</span></td>
-        <td><button class="btn btn-secondary btn-sm" onclick="setAdminQuota('${u.username}')">Квота</button></td>
-      `;
-      tbody.appendChild(tr);
-    });
-    loadAdminVisitors();
-  } catch(e) {}
-}
-
-async function loadAdminVisitors() {
-  try {
-    const r = await fetch(API_BASE + '/api/admin/visitors');
-    const js = await r.json();
-    const tbody = document.getElementById('visitorsTableBody');
-    tbody.innerHTML = '';
-    (js.visitors || []).slice(-15).reverse().forEach(v => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${v.ts || '-'}</td>
-        <td style="color:#fff;">${v.user || 'Гость'}</td>
-        <td><code>${v.ip}</code></td>
-        <td>${v.country || 'RU'}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch(e) {}
-}
-
-function toggleAddUserModal() {
-  const f = document.getElementById('addUserFormBox');
-  f.style.display = (f.style.display === 'none' ? 'block' : 'none');
-}
-
-async function submitCreateUser() {
-  const u = document.getElementById('newUsername').value.trim();
-  const n = document.getElementById('newNotes').value.trim();
-  const r = document.getElementById('newRole').value;
-  const p = document.getElementById('newPassword').value.trim();
-  if (!u) return alert('Введите никнейм');
-  await fetch(API_BASE + '/api/admin/users/create', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username: u, notes: n, role: r, password: p })
-  });
-  toggleAddUserModal();
-  loadAdminUsers();
-  showToast(`Пользователь ${u} создан!`);
-}
-
-function setAdminQuota(username) {
-  const amount = prompt(`Укажите новое количество запросов для ${username} (или 'vip' для безлимита):`, '25');
-  if (amount === null) return;
-  const isVip = amount.toLowerCase().trim() === 'vip';
-  const val = isVip ? 999999 : parseInt(amount, 10);
-  fetch(API_BASE + '/api/admin/user/set-quota', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ target_user: username, balance: val, is_unlimited: isVip })
-  }).then(() => {
-    loadAdminUsers();
-    showToast(`Квота ${username} обновлена`);
-  });
-}
-
-function openExternalUrl(url) {
-  if (!url) return;
-  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.openLink) {
-    window.Telegram.WebApp.openLink(url);
-  } else {
-    window.open(url, '_blank');
-  }
-}
-
-// =====================================================================
-// --- MULTITOOL INTERACTIVE CLIENT LOGIC ---
-// =====================================================================
-
-let currentTempMailToken = '';
-let currentTempMailAddress = '';
-let currentLastDlUrl = '';
-
-// --- 1. MEDIA DOWNLOADER ---
-async function executeMediaDownload(isAudio) {
-  const input = document.getElementById('dlInputUrl');
-  const url = (input.value || '').trim();
-  if (!url) return alert('Вставьте ссылку на видео (TikTok, Reels, YouTube Shorts, X, etc.)');
-
-  const statusBox = document.getElementById('dlStatusBox');
-  const statusText = document.getElementById('dlStatusText');
-  const resultBox = document.getElementById('dlResultBox');
-
-  statusBox.style.display = 'block';
-  resultBox.style.display = 'none';
-  statusText.innerText = isAudio ? 'Извлечение аудиодорожки MP3...' : 'Скачивание видео без водяных знаков...';
-
-  try {
-    const res = await fetch(API_BASE + '/api/multitool/download', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: url, extract_audio: isAudio })
-    });
-    const data = await res.json();
-    statusBox.style.display = 'none';
-
-    if (!data.ok) {
-      alert('Ошибка: ' + (data.error || 'Не удалось скачать медиа'));
-      return;
     }
 
-    resultBox.style.display = 'block';
-    document.getElementById('dlResultTitle').innerText = data.title || 'Файл готов';
-    const mbSize = (data.filesize / (1024 * 1024)).toFixed(1);
-    document.getElementById('dlResultMeta').innerText = `Автор: ${data.uploader || 'N/A'} | Длительность: ${data.duration || 0} сек. | Размер: ${mbSize} МБ`;
-    
-    currentLastDlUrl = url;
-    const dlLink = document.getElementById('dlDownloadLink');
-    dlLink.href = data.filepath ? (API_BASE + '/api/multitool/file?p=' + encodeURIComponent(data.filepath)) : url;
-    showToast('Медиа успешно обработано!');
-  } catch (e) {
-    statusBox.style.display = 'none';
-    alert('Сбой запроса: ' + e.message);
-  }
-}
-
-function copyDlLink() {
-  if (!currentLastDlUrl) return;
-  navigator.clipboard.writeText(currentLastDlUrl);
-  showToast('Ссылка скопирована');
-}
-
-// --- 2. TEMP MAIL ---
-async function initTempMailBox() {
-  const addrInput = document.getElementById('tempMailAddressInput');
-  addrInput.value = 'Генерация ящика...';
-  try {
-    const res = await fetch(API_BASE + '/api/multitool/tempmail/new');
-    const data = await res.json();
-    if (data.ok) {
-      currentTempMailAddress = data.email;
-      currentTempMailToken = data.token;
-      addrInput.value = data.email;
-      document.getElementById('tempMailMessagesList').innerHTML = '<div style="color:var(--primary); padding:6px 0;">Ящик готов. Ожидание писем...</div>';
-      showToast('Ящик создан!');
-    } else {
-      addrInput.value = 'Ошибка создания';
-      alert('Ошибка: ' + data.error);
+    // --- 4. ADMIN & AUTH ---
+    function getAdminHeaders() {
+      const h = { 'Content-Type': 'application/json' };
+      if (window.Telegram?.WebApp?.initData) {
+        h['X-Telegram-Init-Data'] = window.Telegram.WebApp.initData;
+      }
+      const t = localStorage.getItem('admin_token');
+      if (t) h['X-Admin-Token'] = t;
+      return h;
     }
-  } catch (e) {
-    addrInput.value = 'Сбой сети';
-  }
-}
 
-function copyTempMail() {
-  if (!currentTempMailAddress) return alert('Сначала создайте ящик');
-  navigator.clipboard.writeText(currentTempMailAddress);
-  showToast('Email скопирован в буфер');
-}
-
-async function checkTempMailMessages() {
-  if (!currentTempMailToken) return alert('Сначала создайте ящик');
-  const container = document.getElementById('tempMailMessagesList');
-  container.innerHTML = '<div style="color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> Проверка входящих...</div>';
-  try {
-    const res = await fetch(`${API_BASE}/api/multitool/tempmail/messages?token=${encodeURIComponent(currentTempMailToken)}`);
-    const data = await res.json();
-    if (!data.ok || !data.messages || data.messages.length === 0) {
-      container.innerHTML = '<div style="color:var(--text-muted); padding:6px 0;">📭 Входящих писем пока нет. Обновите через пару секунд.</div>';
-      return;
+    async function checkAdminStatus() {
+      try {
+        const r = await fetch('/api/auth/me', { headers: getAdminHeaders() });
+        const d = await r.json();
+        if (d.ok && d.is_admin) {
+          document.getElementById('adminHeaderBtn').style.display = 'inline-flex';
+          document.getElementById('navAdminTabBtn').style.display = 'flex';
+        }
+      } catch(e) {}
     }
-    let html = '';
-    data.messages.forEach(m => {
-      html += `
-        <div style="background:var(--surface-raised); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px; margin-bottom:6px; cursor:pointer;" onclick="readTempMailMessage('${m.id}')">
-          <div style="font-weight:700; color:#fff;">${escapeHtml(m.subject || 'Без темы')}</div>
-          <div style="font-size:10px; color:var(--text-muted);">От: ${escapeHtml(m.from || '')} | ${m.created_at ? m.created_at.slice(11, 19) : ''}</div>
-          <div style="font-size:11px; color:var(--primary); margin-top:2px;">Нажмите, чтобы открыть письмо →</div>
-        </div>
-      `;
-    });
-    container.innerHTML = html;
-  } catch (e) {
-    container.innerHTML = '<div style="color:var(--red);">Ошибка проверки: ' + e.message + '</div>';
-  }
-}
 
-async function readTempMailMessage(msgId) {
-  try {
-    const res = await fetch(`${API_BASE}/api/multitool/tempmail/read?token=${encodeURIComponent(currentTempMailToken)}&message_id=${encodeURIComponent(msgId)}`);
-    const data = await res.json();
-    if (data.ok) {
-      alert(`Письмо от: ${data.from}\nТема: ${data.subject}\n\nТекст:\n${data.text || '(HTML)'}`);
+    async function loadAdminStats() {
+      try {
+        const r = await fetch('/api/admin/stats', { headers: getAdminHeaders() });
+        const d = await r.json();
+        if (d.ok) {
+          document.getElementById('admStatUsers').innerText = d.total_users || 0;
+          document.getElementById('admStatDisk').innerText = `${d.disk_free_gb || 0} ГБ`;
+        }
+      } catch(e) {}
     }
-  } catch (e) {
-    alert('Не удалось прочесть письмо');
-  }
-}
 
-// --- 3. PASSWORD GENERATOR ---
-function generateNewPassword() {
-  const range = document.getElementById('pwdLengthRange');
-  const len = parseInt(range ? range.value : 16, 10) || 16;
-  fetch(API_BASE + '/api/multitool/password', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ length: len, use_upper: true, use_digits: true, use_symbols: true })
-  }).then(r => r.json()).then(d => {
-    if (d.ok) {
-      document.getElementById('pwdOutputInput').value = d.password;
-      document.getElementById('pwdEntropyBadge').innerText = `${d.entropy_bits} бит (${d.strength})`;
+    async function sendBroadcast() {
+      const txt = (document.getElementById('broadcastText').value || '').trim();
+      if (!txt) return alert('Введите текст');
+      const st = document.getElementById('broadcastStatus');
+      st.innerText = 'Отправка...';
+      try {
+        const r = await fetch('/api/admin/broadcast', {
+          method: 'POST',
+          headers: getAdminHeaders(),
+          body: JSON.stringify({ message: txt })
+        });
+        const d = await r.json();
+        if (d.ok) {
+          st.innerText = `✓ Успешно отправлено: ${d.sent} из ${d.total}`;
+          document.getElementById('broadcastText').value = '';
+          showToast('Рассылка выполнена!');
+        } else {
+          st.innerText = 'Ошибка: ' + d.error;
+        }
+      } catch(e) {
+        st.innerText = 'Ошибка сети';
+      }
     }
-  });
-}
-
-function copyGeneratedPwd() {
-  const val = document.getElementById('pwdOutputInput').value;
-  if (!val) return;
-  navigator.clipboard.writeText(val);
-  showToast('Пароль скопирован');
-}
-
-// --- 4. WEB PROBE & SSL ---
-async function executeWebProbe() {
-  const input = document.getElementById('webProbeInput');
-  const target = (input.value || '').trim();
-  if (!target) return alert('Введите домен или URL');
-
-  const pre = document.getElementById('webProbeOutputPre');
-  const box = document.getElementById('webProbeResultBox');
-  box.style.display = 'block';
-  pre.innerText = 'Тестирование DNS, HTTP и SSL сертификата...';
-
-  try {
-    const res = await fetch(API_BASE + '/api/multitool/webprobe', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: target })
-    });
-    const d = await res.json();
-    if (!d.ok) {
-      pre.innerText = 'Ошибка: ' + (d.error || 'Сбой проверки');
-      return;
-    }
-    const sslStr = d.ssl_valid ? `Действителен (осталось ${d.ssl_days_left} дней)` : `Ошибка SSL: ${d.ssl_error || 'Не защищен'}`;
-    let secH = '';
-    for (const [k, v] of Object.entries(d.security_headers || {})) {
-      secH += `  [${v ? 'OK' : '--'}] ${k}\n`;
-    }
-    pre.innerText = 
-`[+] Хост: ${d.host} (IP: ${d.ip})
-[+] HTTP Статус: ${d.http_status || 'N/A'} (Время ответа: ${d.response_time_ms} мс)
-[+] Веб-сервер: ${d.server}
-[+] SSL Сертификат: ${sslStr}
-[+] Центр сертификации: ${d.ssl_issuer || 'N/A'}
-[*] Заголовки безопасности:
-${secH}`;
-  } catch (e) {
-    pre.innerText = 'Ошибка сети: ' + e.message;
-  }
-}
-
-// --- 5. QR CODE GENERATOR ---
-async function generateQRCode() {
-  const text = (document.getElementById('qrInputData').value || '').trim();
-  if (!text) return alert('Введите текст или ссылку для QR-кода');
-
-  const box = document.getElementById('qrResultBox');
-  const img = document.getElementById('qrResultImg');
-  const dl = document.getElementById('qrDownloadBtn');
-
-  try {
-    const res = await fetch(API_BASE + '/api/multitool/qr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text: text })
-    });
-    const blob = await res.blob();
-    const url = URL.createObjectURL(blob);
-    img.src = url;
-    dl.href = url;
-    box.style.display = 'block';
-    showToast('QR-код готов');
-  } catch (e) {
-    alert('Ошибка генерации QR');
-  }
-}
-
-// =====================================================================
-// --- STARTUP INITIALIZATION ---
-// =====================================================================
-document.addEventListener('DOMContentLoaded', () => {
-  if (window.Telegram && window.Telegram.WebApp) {
-    window.Telegram.WebApp.ready();
-    window.Telegram.WebApp.expand();
-  }
-  initUserProfile();
-  updateCasesCountBadge();
-  renderCatalog();
-  generateNewPassword();
-});
-</script>
+  </script>
 </body>
 </html>
