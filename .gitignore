@@ -1,12 +1,10 @@
-# Секреты и токены
+﻿# Секреты и токены
 .env
 config/.env
 *.env
 
 # Данные и логи визитов
 data/*
-!data/wmn_sites.json
-!data/sherlock_data.json
 *.jsonl
 *.db
 *.log

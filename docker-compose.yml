@@ -1,9 +1,9 @@
-version: "3.8"
+﻿version: "3.8"
 
 services:
   app:
     build: .
-    container_name: osint_lab_app
+    container_name: multowood_app
     restart: unless-stopped
     env_file:
       - config/.env
@@ -13,22 +13,22 @@ services:
       - ./index.html:/app/index.html:ro
       - ./src:/app/src:ro
     networks:
-      - osint-net
+      - multowood-net
     ports:
       - "127.0.0.1:8000:8000"
 
   tunnel:
     image: cloudflare/cloudflared:latest
-    container_name: osint_lab_tunnel
+    container_name: multowood_tunnel
     restart: unless-stopped
     command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
     env_file:
       - config/.env
     networks:
-      - osint-net
+      - multowood-net
     depends_on:
       - app
 
 networks:
-  osint-net:
+  multowood-net:
     driver: bridge

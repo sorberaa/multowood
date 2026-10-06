@@ -27,19 +27,18 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
 import accounts
-from multitool import AIProductivity, DevSecurityTools, MediaDownloader, TempMailService
-from osint import (
-    Attribution,
-    DomainRecon,
-    EmailRecon,
-    GithubRecon,
-    GoogleDorks,
-    IpGeoint,
-    PhoneRecon,
-    TelegramRecon,
-    UniversalRecon,
-    UsernameScanner,
-    WaybackRecon,
+from multitool import (
+    AIProductivity,
+    CurrencyService,
+    DevSecurityTools,
+    ImageCompressor,
+    LinkShortener,
+    MediaDownloader,
+    PasswordAudit,
+    TempMailService,
+    UnitConverter,
+    WeatherService,
+    WifiQr,
 )
 
 load_dotenv("/app/config/.env")
@@ -268,14 +267,34 @@ class NicknameReq(BaseModel):
     nickname: str
 
 
-class ScanReq(BaseModel):
-    target: str
-    caller: str = ""
+class CurrencyReq(BaseModel):
+    amount: float = 1
+    from_cur: str = "USD"
+    to_cur: str = "RUB"
 
 
-class AttributionReq(BaseModel):
-    target: str
-    text_sample: str = ""
+class WeatherReq(BaseModel):
+    city: str
+
+
+class PasswordCheckReq(BaseModel):
+    password: str
+
+
+class ShortenReq(BaseModel):
+    url: str
+
+
+class WifiQrReq(BaseModel):
+    ssid: str
+    password: str = ""
+    encryption: str = "WPA"
+
+
+class ConvertReq(BaseModel):
+    value: float
+    from_unit: str
+    to_unit: str
 
 
 class UserActionReq(BaseModel):
@@ -500,101 +519,145 @@ async def api_catalog():
 
 
 # =====================================================================
-# OSINT SCANNERS (образовательные, только публичные данные)
+# MULTITOOL EXTRAS (погода, курсы, пароли, ссылки, единицы, QR, фото)
 # =====================================================================
 
-async def _run_scan(request: Request, req: ScanReq, runner, counter: bool = True):
-    """Общая обёртка: бан-гард → скан → XP/счётчик."""
+async def _tool_guard(request: Request) -> Optional[JSONResponse]:
+    """Бан-гард для инструментов. None — можно продолжать."""
     tg_user = get_request_tg_user(request)
     uid = str(tg_user.get("id", "")) if tg_user else ""
     if uid and accounts.is_banned(uid):
         return JSONResponse({"ok": False, "error": "Аккаунт заблокирован"}, status_code=403)
-    res = await runner(req.target)
-    if res.get("ok") and uid and counter:
-        track_user_activity(uid, action="scan")
-    return res
+    return None
 
 
-@app.post("/api/scan/username")
-async def api_scan_username(req: ScanReq, request: Request):
-    return await _run_scan(request, req, UsernameScanner.scan)
+@app.post("/api/multitool/weather")
+async def api_weather(req: WeatherReq, request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    return await WeatherService.get(req.city)
 
 
-@app.post("/api/scan/telegram")
-async def api_scan_telegram(req: ScanReq, request: Request):
-    return await _run_scan(request, req, TelegramRecon.analyze)
+@app.get("/api/multitool/weather")
+async def api_weather_get(city: str, request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    return await WeatherService.get(city)
 
 
-@app.post("/api/scan/github")
-async def api_scan_github(req: ScanReq, request: Request):
-    return await _run_scan(request, req, GithubRecon.analyze)
+@app.post("/api/multitool/rates")
+async def api_rates(request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    return await CurrencyService.popular()
 
 
-@app.post("/api/scan/phone")
-async def api_scan_phone(req: ScanReq, request: Request):
-    return await _run_scan(request, req, lambda t: asyncio.to_thread(PhoneRecon.analyze, t))
+@app.post("/api/multitool/convert-currency")
+async def api_convert_currency(req: CurrencyReq, request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    return await CurrencyService.convert(req.amount, req.from_cur, req.to_cur)
 
 
-@app.post("/api/scan/domain")
-async def api_scan_domain(req: ScanReq, request: Request):
-    return await _run_scan(request, req, DomainRecon.analyze)
+@app.post("/api/multitool/check-password")
+async def api_check_password(req: PasswordCheckReq, request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    return await PasswordAudit.check(req.password)
 
 
-@app.post("/api/scan/ip")
-async def api_scan_ip(req: ScanReq, request: Request):
-    return await _run_scan(request, req, IpGeoint.analyze)
+@app.post("/api/multitool/shorten")
+async def api_shorten(req: ShortenReq, request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    base = str(request.base_url).rstrip("/")
+    return await LinkShortener.shorten(req.url, base_url=base)
 
 
-@app.post("/api/scan/email")
-async def api_scan_email(req: ScanReq, request: Request):
-    return await _run_scan(request, req, EmailRecon.analyze)
+@app.get("/s/{code}")
+async def api_short_redirect(code: str):
+    """Редирект короткой ссылки: /s/Ab12Cd"""
+    from fastapi.responses import RedirectResponse
+    target = LinkShortener.resolve(code)
+    if not target:
+        return JSONResponse({"ok": False, "error": "Ссылка не найдена"}, status_code=404)
+    return RedirectResponse(url=target, status_code=307)
 
 
-@app.post("/api/scan/wayback")
-async def api_scan_wayback(req: ScanReq, request: Request):
-    return await _run_scan(request, req, WaybackRecon.analyze)
+@app.get("/api/multitool/links-stats")
+async def api_links_stats(request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    return LinkShortener.stats()
 
 
-@app.post("/api/scan/attribution")
-async def api_scan_attribution(req: AttributionReq, request: Request):
-    scan_req = ScanReq(target=req.target)
-    return await _run_scan(
-        request, scan_req,
-        lambda t: asyncio.to_thread(Attribution.analyze, t, req.text_sample),
-    )
+@app.post("/api/multitool/wifi-qr")
+async def api_wifi_qr(req: WifiQrReq, request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    res = await asyncio.to_thread(WifiQr.generate, req.ssid, req.password, req.encryption)
+    if not res.get("ok"):
+        return JSONResponse(res, status_code=400)
+    # возвращаем PNG-картинкой
+    return Response(content=res["png"], media_type="image/png",
+                    headers={"X-Ssid": res.get("ssid", "")})
 
 
-@app.post("/api/scan/universal")
-async def api_scan_universal(req: ScanReq, request: Request):
-    return await _run_scan(request, req, UniversalRecon.analyze)
+@app.post("/api/multitool/convert-unit")
+async def api_convert_unit(req: ConvertReq, request: Request):
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    return UnitConverter.convert(req.value, req.from_unit, req.to_unit)
 
 
-@app.post("/api/scan/myip")
-async def api_scan_myip(request: Request):
-    headers = request.headers
-    ip = (
-        headers.get("cf-connecting-ip")
-        or headers.get("x-forwarded-for", "").split(",")[0].strip()
-        or (request.client.host if request.client else "")
-    )
-    return {
-        "ok": True,
-        "data": {
-            "ip": ip,
-            "country": headers.get("cf-ipcountry", "N/A"),
-            "user_agent": headers.get("user-agent", "")[:200],
-        },
-    }
+@app.get("/api/multitool/units")
+async def api_units():
+    return {"ok": True, "categories": UnitConverter.categories()}
 
 
-@app.post("/api/tools/dorks")
-async def api_tools_dorks(req: ScanReq, request: Request):
-    return await _run_scan(request, req, lambda t: asyncio.to_thread(GoogleDorks.generate, t))
+@app.post("/api/multitool/compress")
+async def api_compress_image(request: Request, quality: int = 78):
+    """Сжатие фото: multipart/form-data с полем file."""
+    guard = await _tool_guard(request)
+    if guard:
+        return guard
+    try:
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None:
+            return JSONResponse({"ok": False, "error": "Файл не передан (поле file)"}, status_code=400)
+        data = await upload.read()
+        res = await asyncio.to_thread(ImageCompressor.compress, data, quality)
+        if not res.get("ok"):
+            return JSONResponse(res, status_code=400)
+        # отдаем сжатый JPEG + метрики в заголовках
+        return Response(
+            content=res["png"],
+            media_type="image/jpeg",
+            headers={
+                "X-Original-Size": str(res["original_size"]),
+                "X-New-Size": str(res["new_size"]),
+                "X-Saved-Pct": str(res["saved_pct"]),
+                "X-Dimensions": res.get("dimensions", ""),
+            },
+        )
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": f"Сбой обработки: {str(e)[:150]}"}, status_code=500)
 
 
 @app.post("/api/tools/decode")
 async def api_tools_decode(req: DecodeReq):
     return DevSecurityTools.cyber_decode(req.action, req.target)
+
 
 
 

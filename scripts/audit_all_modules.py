@@ -4,7 +4,7 @@ import sys
 import time
 from pathlib import Path
 
-# фикс: путь берётся от расположения скрипта, а не хардкод d:/osint-bot
+# путь берётся от расположения скрипта (без хардкода абсолютных путей)
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
@@ -22,20 +22,21 @@ tests = [
     ('admin_users', 'GET', '/api/admin/users', None, ADMIN_HEADERS),
     ('admin_visitors', 'GET', '/api/admin/visitors', None, ADMIN_HEADERS),
     ('leaderboard', 'GET', '/api/user/leaderboard', None, None),
-    ('username', 'POST', '/api/scan/username', {'target': 'durov'}, None),
-    ('attribution', 'POST', '/api/scan/attribution', {'target': '@durov'}, None),
-    ('dorks', 'POST', '/api/tools/dorks', {'target': 'company.com'}, None),
+    ('weather', 'POST', '/api/multitool/weather', {'city': 'Moscow'}, None),
+    ('rates', 'POST', '/api/multitool/rates', {}, None),
+    ('currency', 'POST', '/api/multitool/convert-currency',
+     {'amount': 100, 'from_cur': 'USD', 'to_cur': 'EUR'}, None),
+    ('password_check', 'POST', '/api/multitool/check-password', {'password': 'password'}, None),
+    ('shorten', 'POST', '/api/multitool/shorten', {'url': 'https://example.com/very/long/path'}, None),
+    ('unit_convert', 'POST', '/api/multitool/convert-unit',
+     {'value': 100, 'from_unit': 'km', 'to_unit': 'mi'}, None),
+    ('units_list', 'GET', '/api/multitool/units', None, None),
     ('decode', 'POST', '/api/tools/decode', {'target': 'aGVsbG8gd29ybGQ='}, None),
-    ('phone', 'POST', '/api/scan/phone', {'target': '+79991234567'}, None),
-    ('email', 'POST', '/api/scan/email', {'target': 'test@gmail.com'}, None),
-    ('domain', 'POST', '/api/scan/domain', {'target': 'telegram.org'}, None),
-    ('ip', 'POST', '/api/scan/ip', {'target': '1.1.1.1'}, None),
-    ('myip', 'POST', '/api/scan/myip', {}, None),
-    ('telegram', 'POST', '/api/scan/telegram', {'target': 'durov'}, None),
-    ('github', 'POST', '/api/scan/github', {'target': 'torvalds'}, None),
     ('password', 'POST', '/api/multitool/password',
      {'length': 16, 'use_upper': True, 'use_digits': True, 'use_symbols': True}, None),
+    ('summarize', 'POST', '/api/multitool/summarize', {'target': 'Multiwood is a multitool project for mobile users.'}, None),
 ]
+
 
 print("=== STARTING COMPREHENSIVE AUDIT OF ALL MODULES ===", flush=True)
 

@@ -45,32 +45,63 @@ async def test_all():
         r = await client.get("/api/admin/visitors", headers={"X-Telegram-User-Id": "5233450569"})
         print(f"Visitors Log Status: {r.status_code}, Total records: {r.json().get('total_recorded')}")
 
-        print("\n=== 6. ТЕСТ: SHERLOCK ENGINE (ПОИСК НИКНЕЙМА) ===")
-        r = await client.post("/api/scan/username", json={"target": "wertag20", "caller": "ShadowAgent"})
-        print(f"Sherlock Status: {r.status_code}, Found profiles: {r.json().get('found_count')}")
+        print("\n=== 6. ТЕСТ: ПОГОДА (open-meteo) ===")
+        r = await client.post("/api/multitool/weather", json={"city": "Moscow"})
+        d = r.json()
+        print(f"Weather Status: {r.status_code}, City: {d.get('city')}, Temp: {d.get('current', {}).get('temp')}C")
 
-        print("\n=== 7. ТЕСТ: PHONE RECON (ТЕЛЕФОННАЯ РАЗВЕДКА) ===")
-        r = await client.post("/api/scan/phone", json={"target": "+79991234567", "caller": "ShadowAgent"})
-        print(f"Phone Recon Status: {r.status_code}, Carrier: {r.json().get('carrier')}, Region: {r.json().get('country')}")
+        print("\n=== 7. ТЕСТ: КУРСЫ ВАЛЮТ ===")
+        r = await client.post("/api/multitool/convert-currency", json={
+            "amount": 100, "from_cur": "USD", "to_cur": "RUB"
+        })
+        d = r.json()
+        print(f"Currency Status: {r.status_code}, Result: {d.get('result')} (ok={d.get('ok')})")
 
-        print("\n=== 8. ТЕСТ: SOCKPUPPET ATTRIBUTION (ДЕТЕКТОР ВИРТОВ) ===")
-        r = await client.post("/api/scan/attribution", json={"target": "@alex_temp", "text_sample": "привет от вирта"})
-        print(f"Attribution Status: {r.status_code}, Root handle: {r.json().get('root_handle')}")
+        print("\n=== 8. ТЕСТ: ПРОВЕРКА ПАРОЛЯ НА УТЕЧКИ (HIBP) ===")
+        r = await client.post("/api/multitool/check-password", json={"password": "password"})
+        d = r.json()
+        print(f"PW Check Status: {r.status_code}, Pwned: {d.get('pwned')}, Breaches: {d.get('breaches')}")
 
-        print("\n=== 9. ТЕСТ: DOMAIN & SUBDOMAINS ===")
-        r = await client.post("/api/scan/domain", json={"target": "google.com", "caller": "ShadowAgent"})
-        print(f"Domain Recon Status: {r.status_code}, IPs: {r.json().get('data', {}).get('ip_addresses')}")
+        print("\n=== 9. ТЕСТ: СОКРАТЕЛЬ ССЫЛОК ===")
+        r = await client.post("/api/multitool/shorten", json={"url": "https://github.com/sorberaa/multowood"})
+        d = r.json()
+        print(f"Shorten Status: {r.status_code}, Short: {d.get('short_url')}")
+        if d.get("code"):
+            rr = await client.get(f"/s/{d['code']}", follow_redirects=False)
+            print(f"Redirect Status: {rr.status_code} (ожидается 307)")
 
-        print("\n=== 10. ТЕСТ: IP GEOINT ===")
-        r = await client.post("/api/scan/ip", json={"target": "8.8.8.8", "caller": "ShadowAgent"})
-        print(f"IP Recon Status: {r.status_code}, Country: {r.json().get('data', {}).get('country')}")
+        print("\n=== 10. ТЕСТ: КОНВЕРТЕР ЕДИНИЦ ===")
+        r = await client.post("/api/multitool/convert-unit", json={
+            "value": 100, "from_unit": "km", "to_unit": "mi"
+        })
+        d = r.json()
+        print(f"Unit Convert Status: {r.status_code}, 100 km = {d.get('result')} mi")
 
-        print("\n=== 11. ТЕСТ: ДОСТУП (ADMIN STATS) ===")
+        print("\n=== 11. ТЕСТ: WI-FI QR ===")
+        r = await client.post("/api/multitool/wifi-qr", json={
+            "ssid": "TestNet", "password": "secret123"
+        })
+        print(f"WiFi QR Status: {r.status_code}, Content-Type: {r.headers.get('content-type')}, bytes: {len(r.content)}")
+
+        print("\n=== 12. ТЕСТ: СЖАТИЕ ФОТО ===")
+        # миниатюрный тестовый PNG 1x1
+        import base64 as b64
+        png_1x1 = b64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYGBgAAAABQABh6FO1AAAAABJRU5ErkJggg=="
+        )
+        r = await client.post(
+            "/api/multitool/compress",
+            files={"file": ("test.png", png_1x1, "image/png")},
+            params={"quality": "78"},
+        )
+        print(f"Compress Status: {r.status_code}, saved: {r.headers.get('X-Saved-Pct')}%, bytes: {len(r.content)}")
+
+        print("\n=== 13. ТЕСТ: ДОСТУП (ADMIN STATS) ===")
         r = await client.get("/api/admin/stats", headers={"X-Telegram-User-Id": "5233450569"})
         d = r.json()
         print(f"Stats Status: {r.status_code}, users={d.get('total_users')}, visits={d.get('total_visits')}")
 
-        print("\n=== 12. ТЕСТ: БАН → БЛОК ДОСТУПА ===")
+        print("\n=== 14. ТЕСТ: БАН → БЛОК ДОСТУПА ===")
         r = await client.post("/api/admin/user/action",
                               json={"tg_id": "11223344", "action": "ban"},
                               headers={"X-Telegram-User-Id": "5233450569"})
@@ -84,5 +115,6 @@ async def test_all():
 
 if __name__ == "__main__":
     asyncio.run(test_all())
+
 
 

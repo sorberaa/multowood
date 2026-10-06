@@ -1,6 +1,6 @@
 """
 Multiwood Telegram Bot - Smart Mobile Multitool
-Fast social media downloader, mobile utilities, OSINT recon and Telegram Mini App integration.
+Fast social media downloader, mobile utilities, weather, currencies and Telegram Mini App integration.
 """
 
 import asyncio
@@ -119,11 +119,13 @@ async def cmd_start(message: types.Message):
         f"Добро пожаловать в <b>Multiwood</b> — твой персональный мультитул для смартфона.\n\n"
         f"📥 <b>СКАЧИВАНИЕ ИЗ СОЦСЕТЕЙ БЕЗ ВОДЯНЫХ ЗНАКОВ:</b>\n"
         f"Просто <b>отправь ссылку</b> в чат (TikTok, Instagram Reels, YouTube Shorts, X, Pinterest, VK) — и бот пришлёт чистое видео или аудио!\n\n"
-        f"🔍 <b>OSINT-РАЗВЕДКА (учебная):</b>\n"
-        f"<code>/username ник</code> — поиск аккаунтов по 60+ сайтам\n"
-        f"<code>/phone номер</code> · <code>/ip адрес</code> · <code>/domain сайт</code> · <code>/dorks запрос</code>\n\n"
+        f"🌦 <b>ЕЖЕДНЕВНЫЕ ФУНКЦИИ:</b>\n"
+        f"<code>/weather город</code> — погода с прогнозом на 4 дня\n"
+        f"<code>/cur 100 USD RUB</code> — курсы валют · <code>/check пароль</code> — утечки пароля\n"
+        f"<code>/short ссылка</code> — короткая ссылка · <code>/convert 100 km mi</code> — конвертер\n\n"
+        f"🖼 <b>ПРОСТО ОТПРАВЬ ФОТО</b> — бот сожмёт его без потери качества (экономия трафика)!\n\n"
         f"🛠 <b>МОБИЛЬНЫЕ УТИЛИТЫ:</b>\n"
-        f"Временная почта, генератор паролей, QR-коды, очистка ссылок от трекеров и AI-выжимка.\n\n"
+        f"Временная почта, генератор паролей, QR-коды, Wi-Fi QR, очистка ссылок от трекеров и AI-выжимка.\n\n"
         f"🎮 <b>ПРОГРЕСС:</b> <code>/daily</code> — ежедневный бонус XP, <code>/top</code> — таблица лидеров, <code>/profile</code> — твой профиль.\n\n"
         f"⚡ <i>Нажми кнопку ниже, чтобы открыть полноэкранный Mini App:</i>"
         f"{admin_hint}"
@@ -137,17 +139,19 @@ async def cmd_help(message: types.Message):
         "📖 <b>Команды Multiwood:</b>\n\n"
         "📥 <b>Скачивание</b>\n"
         "— просто пришлите ссылку в чат или <code>/dl ссылка</code>\n\n"
+        "🌦 <b>Каждый день пригодится</b>\n"
+        "<code>/weather город</code> — погода и прогноз на 4 дня\n"
+        "<code>/rate</code> — курсы валют · <code>/cur 100 USD RUB</code> — конвертер валют\n"
+        "<code>/check пароль</code> — проверить пароль на утечки (безопасно!)\n"
+        "<code>/short ссылка</code> — сократить ссылку\n"
+        "<code>/convert 100 km mi</code> — конвертер единиц\n"
+        "<code>/wifi Сеть пароль</code> — QR для быстрого подключения к Wi-Fi\n\n"
+        "🖼 <b>Отправьте фото</b> — бот вернёт сжатую версию (экономия места)\n\n"
         "🎮 <b>Аккаунт</b>\n"
         "<code>/profile</code> — профиль, уровень и статистика\n"
         "<code>/nick имя</code> — сменить отображаемый ник\n"
         "<code>/daily</code> — ежедневный бонус XP\n"
         "<code>/top</code> — таблица лидеров\n\n"
-        "🔍 <b>OSINT (учебный, только публичные данные)</b>\n"
-        "<code>/username ник</code> — поиск аккаунтов на сайтах\n"
-        "<code>/phone +7...</code> — оператор и регион номера\n"
-        "<code>/ip 1.1.1.1</code> — геолокация IP\n"
-        "<code>/domain site.com</code> — DNS и HTTP-анализ\n"
-        "<code>/dorks запрос</code> — Google-dorks для поиска\n\n"
         "🛠 <b>Утилиты</b>\n"
         "<code>/mail</code> — временная почта · <code>/pass [длина]</code> — пароль\n"
         "<code>/qr текст</code> — QR-код · <code>/clean ссылка</code> — убрать трекеры\n"
@@ -385,10 +389,246 @@ async def cmd_sum(message: types.Message):
     await status.edit_text(text, parse_mode="HTML")
 
 
+# =====================================================================
+# DAILY-UTILITY COMMANDS (погода, курсы, пароли, ссылки, единицы, Wi-Fi)
+# =====================================================================
+
+@dp.message(Command("weather"))
+async def cmd_weather(message: types.Message):
+    from multitool import WeatherService
+    if register_or_update(message):
+        await message.answer("⛔ Ваш аккаунт заблокирован администратором.")
+        return
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer("🌦 <b>Использование:</b> <code>/weather Москва</code>", parse_mode="HTML")
+        return
+    status = await message.answer("🌦 <i>Узнаю погоду...</i>", parse_mode="HTML")
+    res = await WeatherService.get(parts[1])
+    if not res.get("ok"):
+        await status.edit_text(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+        return
+    cur = res["current"]
+    lines = [
+        f"🌦 <b>{html.escape(res['city'])}, {html.escape(res.get('country', ''))}</b>",
+        f"Сейчас: <b>{cur['temp']}°C</b> ({cur['desc']}) — ощущается как {cur['feels']}°C",
+        f"💧 Влажность: {cur['humidity']}% · 💨 Ветер: {cur['wind']} км/ч\n",
+    ]
+    for d in res.get("days", []):
+        precip = f" · 🌧 {d['precip']}%" if d.get("precip") is not None else ""
+        lines.append(
+            f"📅 <b>{d['date']}</b>: {d['desc']} · {d['temp_min']}…{d['temp_max']}°C{precip}"
+        )
+    await status.edit_text("\n".join(lines), parse_mode="HTML")
+
+
+@dp.message(Command("rate"))
+async def cmd_rate(message: types.Message):
+    from multitool import CurrencyService
+    status = await message.answer("💱 <i>Загружаю курсы...</i>", parse_mode="HTML")
+    res = await CurrencyService.popular()
+    if not res.get("ok"):
+        await status.edit_text(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+        return
+    lines = ["💱 <b>Курсы валют (база 1 USD):</b>"]
+    for c in res.get("currencies", []):
+        lines.append(f"• {c['code']}: <b>{c['per_usd']}</b>")
+    lines.append("\n<code>/cur 100 USD RUB</code> — конвертировать сумму")
+    await status.edit_text("\n".join(lines), parse_mode="HTML")
+
+
+@dp.message(Command("cur"))
+async def cmd_cur(message: types.Message):
+    from multitool import CurrencyService
+    parts = message.text.split()
+    if len(parts) < 4:
+        await message.answer(
+            "💱 <b>Использование:</b> <code>/cur 100 USD RUB</code>\n"
+            "Список валют: <code>/rate</code>",
+            parse_mode="HTML",
+        )
+        return
+    try:
+        amount = float(parts[1].replace(",", "."))
+    except ValueError:
+        await message.answer("❌ Сумма должна быть числом: <code>/cur 100 USD RUB</code>", parse_mode="HTML")
+        return
+    status = await message.answer("💱 <i>Считаю...</i>", parse_mode="HTML")
+    res = await CurrencyService.convert(amount, parts[2], parts[3])
+    if not res.get("ok"):
+        await status.edit_text(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+        return
+    await status.edit_text(
+        f"💱 <b>{res['amount']} {res['from']} = {res['result']} {res['to']}</b>\n"
+        f"Курс: 1 {res['from']} = {res['rate']} {res['to']}",
+        parse_mode="HTML",
+    )
+
+
+@dp.message(Command("check"))
+async def cmd_check(message: types.Message):
+    from multitool import PasswordAudit
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer(
+            "🛡 <b>Использование:</b> <code>/check мойпароль</code>\n"
+            "<i>Проверка безопасна: на сервис уходит только 5-символьный префикс SHA-1, "
+            "сам пароль не передаётся.</i>",
+            parse_mode="HTML",
+        )
+        return
+    status = await message.answer("🛡 <i>Проверяю по базе утечек...</i>", parse_mode="HTML")
+    res = await PasswordAudit.check(parts[1])
+    if not res.get("ok"):
+        await status.edit_text(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+        return
+    if res["pwned"]:
+        verdict = f"🚨 <b>Пароль найден в {res['breaches']} утечках — замените его немедленно!</b>"
+    else:
+        verdict = "✅ <b>Пароль не найден в известных утечках.</b>"
+    await status.edit_text(
+        f"{verdict}\n"
+        f"📏 Длина: {res['length']} · Энтропия: {res['entropy_bits']} бит\n"
+        f"<i>{html.escape(res['note'])}</i>",
+        parse_mode="HTML",
+    )
+
+
+@dp.message(Command("short"))
+async def cmd_short(message: types.Message):
+    from multitool import LinkShortener
+    parts = message.text.split(maxsplit=1)
+    if len(parts) < 2:
+        await message.answer("🔗 <b>Использование:</b> <code>/short https://длинная-ссылка</code>", parse_mode="HTML")
+        return
+    res = await LinkShortener.shorten(parts[1], base_url=DOMAIN)
+    if not res.get("ok"):
+        await message.answer(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+        return
+    await message.answer(
+        f"🔗 <b>Короткая ссылка готова:</b>\n<code>{html.escape(res['short_url'])}</code>\n"
+        f"<i>Статистика переходов: <code>/links</code></i>",
+        parse_mode="HTML",
+    )
+
+
+@dp.message(Command("links"))
+async def cmd_links(message: types.Message):
+    from multitool import LinkShortener
+    res = LinkShortener.stats()
+    await message.answer(
+        f"🔗 <b>Статистика коротких ссылок:</b>\n"
+        f"Создано: {res.get('total_links', 0)} · Переходов: {res.get('total_hits', 0)}",
+        parse_mode="HTML",
+    )
+
+
+@dp.message(Command("convert"))
+async def cmd_convert(message: types.Message):
+    from multitool import UnitConverter
+    parts = message.text.split()
+    if len(parts) < 4:
+        await message.answer(
+            "📐 <b>Использование:</b> <code>/convert 100 km mi</code>\n"
+            "Категории: длина (km, m, mi, ft), вес (kg, g, lb, oz), объём (l, ml, gal), "
+            "скорость (kmh, mph, ms), данные (gb, mb), температура (c, f)",
+            parse_mode="HTML",
+        )
+        return
+    try:
+        value = float(parts[1].replace(",", "."))
+    except ValueError:
+        await message.answer("❌ Значение должно быть числом: <code>/convert 100 km mi</code>", parse_mode="HTML")
+        return
+    res = UnitConverter.convert(value, parts[2], parts[3])
+    if not res.get("ok"):
+        await message.answer(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+        return
+    await message.answer(
+        f"📐 <b>{res['value']} {res['from']} = {res['result']} {res['to']}</b>",
+        parse_mode="HTML",
+    )
+
+
+@dp.message(Command("wifi"))
+async def cmd_wifi(message: types.Message):
+    from multitool import WifiQr
+    from aiogram.types import BufferedInputFile
+    parts = message.text.split(maxsplit=2)
+    if len(parts) < 2:
+        await message.answer(
+            "📶 <b>Использование:</b> <code>/wifi МояСеть пароль</code>\n"
+            "Без пароля: <code>/wifi ГостеваяСеть nopass</code>\n"
+            "Сгенерирует QR — наведите камеру, чтобы подключиться.",
+            parse_mode="HTML",
+        )
+        return
+    ssid = parts[1]
+    password = parts[2] if len(parts) > 2 else ""
+    encryption = "nopass" if password.lower() == "nopass" else "WPA"
+    res = WifiQr.generate(ssid, password if encryption != "nopass" else "", encryption)
+    if not res.get("ok"):
+        await message.answer(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+        return
+    img = BufferedInputFile(res["png"], filename="wifi.png")
+    await message.answer_photo(
+        photo=img,
+        caption=(
+            f"📶 <b>Wi-Fi QR для «{html.escape(ssid)}»</b>\n"
+            f"Наведите камеру телефона на QR — подключитесь без ввода пароля.\n"
+            f"<i>Не отправляйте этот QR в публичные чаты!</i>"
+        ),
+        parse_mode="HTML",
+    )
+
+
+@dp.message(F.photo)
+async def cmd_photo_compress(message: types.Message):
+    """Просто отправь фото — получишь сжатую версию (экономия трафика)."""
+    import io as _io
+    from multitool import ImageCompressor
+    from aiogram.types import BufferedInputFile
+
+    if register_or_update(message):
+        await message.answer("⛔ Ваш аккаунт заблокирован администратором.")
+        return
+
+    # берём самое крупное разрешение
+    photo = max(message.photo, key=lambda p: p.file_size or 0)
+    if (photo.file_size or 0) > 18 * 1024 * 1024:
+        await message.answer("❌ Фото больше 18 МБ — сжатие не выполняется.")
+        return
+
+    status = await message.answer("🗜 <i>Сжимаю фото...</i>", parse_mode="HTML")
+    try:
+        file = await bot.get_file(photo.file_id)
+        buf = _io.BytesIO()
+        await bot.download(file, destination=buf)
+        data = buf.getvalue()
+        res = await asyncio.to_thread(ImageCompressor.compress, data)
+        if not res.get("ok"):
+            await status.edit_text(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
+            return
+        accounts.add_xp(message.from_user.id, 1)  # +1 XP за полезное действие
+        img = BufferedInputFile(res["png"], filename="compressed.jpg")
+        await message.answer_photo(
+            photo=img,
+            caption=(
+                f"🗜 <b>Готово! Сэкономлено {res['saved_pct']}%</b>\n"
+                f"Было: {round(res['original_size'] / 1024, 1)} КБ → стало: {round(res['new_size'] / 1024, 1)} КБ\n"
+                f"Размер: {res['dimensions']} · +1 XP"
+            ),
+            parse_mode="HTML",
+        )
+        await status.delete()
+    except Exception as e:
+        await status.edit_text(f"❌ Сбой обработки: {html.escape(str(e)[:150])}", parse_mode="HTML")
+
 
 # =====================================================================
 # ADMIN COMMANDS
 # =====================================================================
+
 
 @dp.message(Command("admin"))
 async def cmd_admin(message: types.Message):
@@ -678,170 +918,6 @@ async def cmd_top(message: types.Message):
 
 
 # =====================================================================
-# OSINT COMMANDS (учебные, только публичные данные)
-# =====================================================================
-
-def _format_osint_result(res: dict) -> str:
-    """Компактное форматирование результатов разных модулей."""
-    t = html.escape(str(res.get("target", "")))
-
-    if "found_count" in res:
-        lines = [f"🔍 <b>Никнейм {t}</b>: найдено <b>{res['found_count']}</b> из {res.get('checked_sites', '?')} сайтов"]
-        for p in (res.get("profiles") or [])[:15]:
-            lines.append(f"• <a href='{html.escape(p['url'])}'>{html.escape(p['site'])}</a>")
-        if res.get("found_count", 0) > 15:
-            lines.append(f"… и ещё {res['found_count'] - 15}")
-        if res.get("found_count", 0) == 0:
-            lines.append("Аккаунты не найдены — возможно, ник уникален.")
-        return "\n".join(lines)
-
-    if "carrier" in res:
-        return (
-            f"☎️ <b>Номер {t}</b>\n"
-            f"🌍 Страна: {html.escape(str(res.get('country', 'N/A')))} ({res.get('country_code', '')})\n"
-            f"📡 Оператор: {html.escape(str(res.get('carrier', 'N/A')))}\n"
-            f"📍 Регион: {html.escape(str(res.get('location', 'N/A')))}\n"
-            f"📱 Тип: {res.get('line_type', 'N/A')}\n"
-            f"📞 Формат: <code>{html.escape(str(res.get('formatted_international', '')))}</code>\n"
-            f"<i>{html.escape(str(res.get('warning', '')))}</i>"
-        )
-
-    if "root_handle" in res:
-        sigs = "".join(f"\n• {html.escape(s)}" for s in res.get("signals", [])) or "\n• Особых признаков нет"
-        return (
-            f"🕵️ <b>Атрибуция {t}</b>\n"
-            f"Корневой хэндл: <code>{html.escape(res['root_handle'])}</code>\n"
-            f"Это вариант: {'да' if res.get('is_variant') else 'нет'}\n"
-            f"Уверенность: {res.get('confidence', 0)}%{sigs}\n"
-            f"<i>{html.escape(str(res.get('warning', '')))}</i>"
-        )
-
-    data = res.get("data") or {}
-
-    if "ip_addresses" in data:
-        ips = ", ".join(f"<code>{html.escape(i)}</code>" for i in data.get("ip_addresses", [])[:6]) or "не разрешается"
-        http = data.get("http", {})
-        return (
-            f"🌐 <b>Домен {t}</b>\n"
-            f"IP: {ips}\n"
-            f"HTTP: {http.get('status_code', 'N/A')} · сервер: {html.escape(str(http.get('server', 'N/A')))}\n"
-            f"HTTPS: {'да' if http.get('https') else 'нет'} · HSTS: {'да' if http.get('hsts') else 'нет'}"
-        )
-
-    if "country" in data or "city" in data:
-        return (
-            f"🌍 <b>IP {t}</b>\n"
-            f"Страна: {html.escape(str(data.get('country', 'N/A')))} ({data.get('country_code', '')})\n"
-            f"Город: {html.escape(str(data.get('city', 'N/A')))} · {html.escape(str(data.get('region', '')))}\n"
-            f"Провайдер: {html.escape(str(data.get('org', 'N/A')))} (ASN {data.get('asn', '')})\n"
-            f"Координаты: {data.get('latitude', '?')}, {data.get('longitude', '?')}"
-        )
-
-    if "mx_records" in data:
-        mx = ", ".join(f"<code>{html.escape(m)}</code>" for m in data.get("mx_records", [])[:5]) or "не найдены"
-        return (
-            f"✉️ <b>Email {t}</b>\n"
-            f"Домен: {html.escape(str(data.get('domain', '')))}\n"
-            f"MX: {mx}\n"
-            f"Бесплатный провайдер: {'да' if data.get('is_free_provider') else 'нет'}"
-        )
-
-    if "dorks" in res:
-        lines = [f"🔎 <b>Google-dorks для {t}:</b>"]
-        for d in res["dorks"][:8]:
-            lines.append(f"• {html.escape(d['title'])}:\n<code>{html.escape(d['query'])}</code>")
-        return "\n".join(lines)
-
-    if "exists" in data:
-        if not data.get("exists"):
-            return f"🔍 <b>{t}</b>: аккаунт не найден."
-        return (
-            f"🔍 <b>{t}</b>: найден\n"
-            f"Имя: {html.escape(str(data.get('name') or '—'))}\n"
-            f"Описание: {html.escape(str(data.get('bio') or data.get('description') or '—'))[:200]}\n"
-            f"Репозиториев: {data.get('public_repos', '—')} · Подписчиков: {data.get('followers', '—')}\n"
-            f"Профиль: {html.escape(str(data.get('profile') or data.get('url') or ''))}"
-        )
-
-    if "snapshots_found" in res:
-        return (
-            f"🕰 <b>Wayback {t}</b>: снимков найдено {res['snapshots_found']}\n"
-            f"Архив: {html.escape(str(data.get('archive_url', '')))}"
-        )
-
-    return f"✅ <b>{t}</b>: " + html.escape(json.dumps(res, ensure_ascii=False)[:800])
-
-
-async def _osint_reply(message: types.Message, coro, title: str):
-    """Общая обёртка OSINT-команд: бан-гард → индикатор → результат + XP."""
-    if register_or_update(message):
-        await message.answer("⛔ Ваш аккаунт заблокирован администратором.")
-        return
-    status = await message.answer(f"🔍 <i>{title}...</i>", parse_mode="HTML")
-    try:
-        res = await coro
-    except Exception as e:
-        await status.edit_text(f"❌ Сбой модуля: {html.escape(str(e)[:150])}", parse_mode="HTML")
-        return
-    if not res.get("ok"):
-        await status.edit_text(f"❌ {html.escape(res.get('error', 'Ошибка'))}", parse_mode="HTML")
-        return
-    accounts.bump_counter(message.from_user.id, "scans")
-    accounts.add_xp(message.from_user.id, accounts.XP_SCAN)
-    await status.edit_text(_format_osint_result(res), parse_mode="HTML")
-
-
-@dp.message(Command("username"))
-async def cmd_username_scan(message: types.Message):
-    from osint import UsernameScanner
-    parts = message.text.split(maxsplit=1)
-    if len(parts) < 2:
-        await message.answer("🔍 <b>Использование:</b> <code>/username ник</code>", parse_mode="HTML")
-        return
-    await _osint_reply(message, UsernameScanner.scan(parts[1]), "Ищу никнейм по сайтам")
-
-
-@dp.message(Command("phone"))
-async def cmd_phone_scan(message: types.Message):
-    from osint import PhoneRecon
-    parts = message.text.split(maxsplit=1)
-    if len(parts) < 2:
-        await message.answer("☎️ <b>Использование:</b> <code>/phone +79991234567</code>", parse_mode="HTML")
-        return
-    await _osint_reply(message, asyncio.to_thread(PhoneRecon.analyze, parts[1]), "Анализирую номер")
-
-
-@dp.message(Command("ip"))
-async def cmd_ip_scan(message: types.Message):
-    from osint import IpGeoint
-    parts = message.text.split(maxsplit=1)
-    if len(parts) < 2:
-        await message.answer("🌍 <b>Использование:</b> <code>/ip 1.1.1.1</code>", parse_mode="HTML")
-        return
-    await _osint_reply(message, IpGeoint.analyze(parts[1]), "Определяю геолокацию IP")
-
-
-@dp.message(Command("domain"))
-async def cmd_domain_scan(message: types.Message):
-    from osint import DomainRecon
-    parts = message.text.split(maxsplit=1)
-    if len(parts) < 2:
-        await message.answer("🌐 <b>Использование:</b> <code>/domain site.com</code>", parse_mode="HTML")
-        return
-    await _osint_reply(message, DomainRecon.analyze(parts[1]), "Делаю DNS-разведку домена")
-
-
-@dp.message(Command("dorks"))
-async def cmd_dorks(message: types.Message):
-    from osint import GoogleDorks
-    parts = message.text.split(maxsplit=1)
-    if len(parts) < 2:
-        await message.answer("🔎 <b>Использование:</b> <code>/dorks компания или домен</code>", parse_mode="HTML")
-        return
-    await _osint_reply(message, GoogleDorks.generate(parts[1]), "Генерирую поисковые запросы")
-
-
-# =====================================================================
 # OMNI-LINK DISPATCHER (AUTO-DOWNLOAD FOR SOCIAL LINKS)
 # =====================================================================
 
@@ -916,13 +992,16 @@ async def main():
         await bot.set_my_commands([
             BotCommand(command="start", description="📱 Открыть Мультитул"),
             BotCommand(command="dl", description="📥 Скачать видео/аудио из соцсетей"),
+            BotCommand(command="weather", description="🌦 Погода и прогноз на 4 дня"),
+            BotCommand(command="rate", description="💱 Курсы валют"),
+            BotCommand(command="cur", description="💱 Конвертер валют: /cur 100 USD RUB"),
+            BotCommand(command="check", description="🛡 Проверка пароля на утечки"),
+            BotCommand(command="short", description="🔗 Сократить ссылку"),
+            BotCommand(command="convert", description="📐 Конвертер единиц: /convert 100 km mi"),
+            BotCommand(command="wifi", description="📶 QR для подключения к Wi-Fi"),
             BotCommand(command="profile", description="👤 Мой профиль и статистика"),
             BotCommand(command="daily", description="🎁 Ежедневный бонус XP"),
             BotCommand(command="top", description="🏆 Топ пользователей"),
-            BotCommand(command="username", description="🔍 Поиск никнейма по сайтам"),
-            BotCommand(command="phone", description="☎️ Инфо о телефонном номере"),
-            BotCommand(command="ip", description="🌍 Геолокация IP-адреса"),
-            BotCommand(command="domain", description="🌐 DNS-разведка домена"),
             BotCommand(command="mail", description="📬 Одноразовая временная почта"),
             BotCommand(command="pass", description="🔐 Генератор стойких паролей"),
             BotCommand(command="qr", description="📷 Создать QR-код"),

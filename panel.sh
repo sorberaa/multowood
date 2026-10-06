@@ -1,8 +1,8 @@
-#!/bin/bash
+﻿#!/bin/bash
 
 clear
 echo "================================"
-echo " OSINT LAB - Docker"
+echo " MULTIWOOD - Docker"
 echo "================================"
 echo ""
 
@@ -53,13 +53,13 @@ case $choice in
     4)
         mkdir -p config data
         read -p "BOT_TOKEN: " token
-        read -p "DOMAIN (https://osint.qrport.eu): " domain
+        read -p "DOMAIN (https://your-domain.com): " domain
         read -p "CF_TUNNEL_TOKEN: " cf_token
         read -p "ADMIN_CHAT_ID (свой id, бот ответит /id): " admin_id
-        read -p "ADMIN_TOKEN (пароль для /admin/visits): " admin_token
+        read -p "ADMIN_TOKEN (пароль для /admin/visits-html): " admin_token
         cat > config/.env <<EOF
 BOT_TOKEN=${token}
-DOMAIN=${domain:-https://osint.qrport.eu}
+DOMAIN=${domain:-https://your-domain.com}
 CF_TUNNEL_TOKEN=${cf_token}
 ADMIN_CHAT_ID=${admin_id}
 ADMIN_TOKEN=${admin_token}

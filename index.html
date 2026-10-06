@@ -648,6 +648,48 @@
             <div class="tool-tile-title">Очистка ссылок</div>
             <div class="tool-tile-desc">Удаление UTM-меток и слежки из URL</div>
           </div>
+
+          <div class="tool-tile" onclick="openTool('weather')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-cloud-sun"></i></div>
+            <div class="tool-tile-title">Погода</div>
+            <div class="tool-tile-desc">Прогноз на 4 дня для любого города</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('rates')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-money-bill-transfer"></i></div>
+            <div class="tool-tile-title">Курсы валют</div>
+            <div class="tool-tile-desc">Актуальные курсы и быстрый конвертер</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('pwcheck')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-user-shield"></i></div>
+            <div class="tool-tile-title">Проверка пароля</div>
+            <div class="tool-tile-desc">Есть ли пароль в утечках (безопасно)</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('shorten')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-link"></i></div>
+            <div class="tool-tile-title">Короткие ссылки</div>
+            <div class="tool-tile-desc">Сокращение длинных URL со статистикой</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('unitconv')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-scale-balanced"></i></div>
+            <div class="tool-tile-title">Конвертер единиц</div>
+            <div class="tool-tile-desc">Длина, вес, температура, объём, скорость</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('wifiqr')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-wifi"></i></div>
+            <div class="tool-tile-title">Wi-Fi QR</div>
+            <div class="tool-tile-desc">QR-код для мгновенного подключения</div>
+          </div>
+
+          <div class="tool-tile" onclick="openTool('compress')">
+            <div class="tool-tile-icon"><i class="fa-solid fa-compress"></i></div>
+            <div class="tool-tile-title">Сжатие фото</div>
+            <div class="tool-tile-desc">Уменьшить размер фото без потери качества</div>
+          </div>
         </div>
       </div>
 
@@ -711,6 +753,96 @@
           </div>
         </div>
       </div>
+
+      <!-- Weather -->
+      <div class="card" id="toolBox-weather" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-cloud-sun"></i> Погода</div>
+        <div class="input-wrap">
+          <input class="custom-input" id="weatherCity" placeholder="Введите город: Москва, Berlin, Tbilisi...">
+        </div>
+        <button class="btn btn-primary" onclick="getWeather()"><i class="fa-solid fa-cloud-bolt"></i> Узнать погоду</button>
+        <div id="weatherResult" class="result-box" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- Currency Rates -->
+      <div class="card" id="toolBox-rates" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-money-bill-transfer"></i> Курсы валют</div>
+        <div class="btn-grid" style="grid-template-columns:1fr 1fr;">
+          <input class="custom-input" id="curAmount" value="100" inputmode="decimal" placeholder="Сумма">
+          <input class="custom-input" id="curFrom" value="USD" placeholder="Из (USD)">
+          <input class="custom-input" id="curTo" value="RUB" placeholder="В (RUB)">
+          <button class="btn btn-primary" onclick="convertCurrency()"><i class="fa-solid fa-arrow-right-arrow-left"></i> Конвертировать</button>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="loadRates()" style="margin-top:8px;"><i class="fa-solid fa-rotate"></i> Показать курсы валют</button>
+        <div id="ratesResult" class="result-box" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- Password Check -->
+      <div class="card" id="toolBox-pwcheck" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-user-shield"></i> Проверка пароля на утечки</div>
+        <div class="card-desc">Пароль <b>не отправляется</b> на сервер — только 5-символьный префикс SHA-1 (k-анонимность HIBP).</div>
+        <div class="input-wrap">
+          <input class="custom-input" id="pwCheckInput" type="password" placeholder="Введите пароль для проверки...">
+        </div>
+        <button class="btn btn-primary" onclick="checkPassword()"><i class="fa-solid fa-shield-virus"></i> Проверить</button>
+        <div id="pwCheckResult" class="result-box" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- URL Shortener -->
+      <div class="card" id="toolBox-shorten" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-link"></i> Короткие ссылки</div>
+        <div class="input-wrap">
+          <input class="custom-input" id="shortenInput" placeholder="Вставьте длинную ссылку...">
+        </div>
+        <button class="btn btn-primary" onclick="shortenUrl()"><i class="fa-solid fa-scissors"></i> Сократить</button>
+        <div id="shortenResult" class="result-box" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- Unit Converter -->
+      <div class="card" id="toolBox-unitconv" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-scale-balanced"></i> Конвертер единиц</div>
+        <div class="btn-grid" style="grid-template-columns:1fr 1fr;">
+          <input class="custom-input" id="ucValue" value="100" inputmode="decimal" placeholder="Значение">
+          <input class="custom-input" id="ucFrom" value="km" placeholder="Из (km)">
+          <input class="custom-input" id="ucTo" value="mi" placeholder="В (mi)">
+          <button class="btn btn-primary" onclick="convertUnit()"><i class="fa-solid fa-arrow-right-arrow-left"></i> Конвертировать</button>
+        </div>
+        <div style="font-size:11px; color:var(--text-muted); margin-top:8px;">
+          Длина: km m mi ft yd · Вес: kg g lb oz · Объём: l ml gal · Скорость: kmh mph ms · Данные: gb mb kb · Температура: c f k
+        </div>
+        <div id="ucResult" class="result-box" style="margin-top:10px;"></div>
+      </div>
+
+      <!-- Wi-Fi QR -->
+      <div class="card" id="toolBox-wifiqr" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-wifi"></i> Wi-Fi QR-код</div>
+        <div class="card-desc">Наведите камеру телефона на QR — подключитесь к Wi-Fi без ввода пароля.</div>
+        <div class="input-wrap">
+          <input class="custom-input" id="wifiSsid" placeholder="Имя сети (SSID): МояСеть">
+        </div>
+        <div class="input-wrap">
+          <input class="custom-input" id="wifiPass" type="password" placeholder="Пароль от Wi-Fi">
+        </div>
+        <label style="font-size:12px; color:var(--text-muted); display:block; margin-bottom:8px;">
+          <input type="checkbox" id="wifiOpen" onclick="document.getElementById('wifiPass').disabled=this.checked"> Скрытая сеть без пароля
+        </label>
+        <button class="btn btn-primary" onclick="genWifiQr()"><i class="fa-solid fa-qrcode"></i> Создать QR</button>
+        <div id="wifiQrResult" style="display:none; text-align:center; margin-top:10px;">
+          <img id="wifiQrImg" alt="Wi-Fi QR" style="max-width:180px; border-radius:8px;">
+        </div>
+      </div>
+
+      <!-- Image Compressor -->
+      <div class="card" id="toolBox-compress" style="display:none;">
+        <div class="card-title" style="margin-bottom:8px;"><i class="fa-solid fa-compress"></i> Сжатие фото</div>
+        <div class="card-desc">Уменьшите размер фото перед отправкой — экономия трафика и места в памяти.</div>
+        <input type="file" id="compressFile" accept="image/*" style="margin-bottom:10px; color:var(--text-muted); font-size:12px;">
+        <div class="btn-grid" style="grid-template-columns:1fr 1fr;">
+          <button class="btn btn-primary" onclick="compressImage(78)"><i class="fa-solid fa-compress"></i> Сжать (78%)</button>
+          <button class="btn btn-secondary" onclick="compressImage(50)"><i class="fa-solid fa-feather"></i> Максимально (50%)</button>
+        </div>
+        <div id="compressResult" class="result-box" style="margin-top:10px;"></div>
+      </div>
     </section>
 
 
@@ -726,43 +858,6 @@
         <div id="aiResultBox" class="result-box">
           <div style="font-weight:700; color:#fff; margin-bottom:8px;" id="aiSummaryTitle">Результат анализа</div>
           <div id="aiSummaryContent" style="font-size:12px; line-height:1.6; color:#cbd5e1;"></div>
-        </div>
-      </div>
-    </section>
-
-
-    <!-- 4. VIEW: OSINT SEARCH -->
-    <section class="view-page" id="view-osint">
-      <div class="card">
-        <div class="card-title" style="margin-bottom:8px;">
-          <i class="fa-solid fa-user-secret" style="color:var(--primary);"></i> OSINT-поиск
-        </div>
-        <div class="card-desc">Образовательный разведывательный модуль. Работает <b>только с публичными данными</b>. Использование против людей без согласия запрещено.</div>
-
-        <div class="input-wrap">
-          <i class="fa-solid fa-crosshairs prefix-icon"></i>
-          <input class="custom-input" id="osintTarget" placeholder="Ник, @телеграм, номер, email, IP или домен..." autocomplete="off">
-        </div>
-
-        <div class="btn-grid" style="grid-template-columns:1fr 1fr;">
-          <button class="btn btn-primary" onclick="runOsint('username')"><i class="fa-solid fa-at"></i> Никнеймы</button>
-          <button class="btn btn-secondary" onclick="runOsint('universal')"><i class="fa-solid fa-radar"></i> Автодосье</button>
-          <button class="btn btn-secondary" onclick="runOsint('phone')"><i class="fa-solid fa-phone"></i> Телефон</button>
-          <button class="btn btn-secondary" onclick="runOsint('ip')"><i class="fa-solid fa-location-crosshairs"></i> IP</button>
-          <button class="btn btn-secondary" onclick="runOsint('domain')"><i class="fa-solid fa-globe"></i> Домен</button>
-          <button class="btn btn-secondary" onclick="runOsint('email')"><i class="fa-solid fa-envelope"></i> Email/MX</button>
-          <button class="btn btn-secondary" onclick="runOsint('telegram')"><i class="fa-brands fa-telegram"></i> Telegram</button>
-          <button class="btn btn-secondary" onclick="runOsint('dorks')"><i class="fa-solid fa-magnifying-glass"></i> Google-dorks</button>
-        </div>
-
-        <div id="osintLoading" style="display:none; text-align:center; padding:14px 0;">
-          <div class="spinner" style="width:24px; height:24px; margin-bottom:8px;"></div>
-          <div style="font-size:12px; color:var(--text-muted);">Сканирование публичных источников...</div>
-        </div>
-
-        <div id="osintResult" class="result-box" style="margin-top:12px;">
-          <div style="font-weight:700; color:#fff; margin-bottom:8px;" id="osintResultTitle">Результат разведки</div>
-          <div id="osintResultContent" style="font-size:12px; line-height:1.6; color:#cbd5e1; word-break:break-word;">Выберите тип анализа и введите цель.</div>
         </div>
       </div>
     </section>
@@ -863,10 +958,6 @@
     <button class="nav-item" onclick="switchTab('ai', this)">
       <i class="fa-solid fa-brain"></i>
       <span>AI Выжимка</span>
-    </button>
-    <button class="nav-item" onclick="switchTab('osint', this)">
-      <i class="fa-solid fa-user-secret"></i>
-      <span>OSINT</span>
     </button>
     <button class="nav-item" id="navAdminTabBtn" onclick="switchTab('admin', this)" style="display:none;">
       <i class="fa-solid fa-shield-halved"></i>
@@ -995,9 +1086,11 @@
     }
 
     // --- 2. TOOLS SUBVIEWS ---
+    const ALL_TOOLS = ['mail', 'pass', 'qr', 'cleaner', 'weather', 'rates', 'pwcheck',
+                       'shorten', 'unitconv', 'wifiqr', 'compress'];
     function openTool(toolName) {
       haptic('light');
-      ['mail', 'pass', 'qr', 'cleaner'].forEach(t => {
+      ALL_TOOLS.forEach(t => {
         const box = document.getElementById('toolBox-' + t);
         if (box) box.style.display = (t === toolName ? 'block' : 'none');
       });
@@ -1112,6 +1205,176 @@
       const v = document.getElementById('cleanedUrlResult').value;
       navigator.clipboard.writeText(v);
       showToast('Чистая ссылка скопирована');
+    }
+
+    // --- 2.5 DAILY TOOLS (погода, курсы, пароли, ссылки, единицы, wifi, фото) ---
+    function toolBox(name) { return document.getElementById(name + 'Result'); }
+
+    async function getWeather() {
+      haptic('light');
+      const city = (document.getElementById('weatherCity').value || '').trim();
+      if (!city) return showToast('Введите город');
+      const box = toolBox('weather');
+      box.classList.add('active');
+      box.innerText = 'Загрузка прогноза...';
+      try {
+        const r = await fetch('/api/multitool/weather', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ city: city })
+        });
+        const d = await r.json();
+        if (!d.ok) { box.innerText = 'Ошибка: ' + (d.error || r.status); return; }
+        const c = d.current;
+        let html = `<b>${escapeHtml(d.city)}, ${escapeHtml(d.country)}</b><br>Сейчас: <b>${c.temp}°C</b> (${escapeHtml(c.desc)}), ощущается ${c.feels}°C<br>`
+                 + `💧 ${c.humidity}% · 💨 ${c.wind} км/ч<br><br>`;
+        (d.days || []).forEach(day => {
+          html += `<b>${day.date}</b>: ${escapeHtml(day.desc)} · ${day.temp_min}…${day.temp_max}°C`
+                + (day.precip != null ? ` · 🌧 ${day.precip}%` : '') + '<br>';
+        });
+        box.innerHTML = html;
+        showToast('Прогноз получен!');
+      } catch(e) { box.innerText = 'Сбой связи: ' + e.message; }
+    }
+
+    async function loadRates() {
+      haptic('light');
+      const box = toolBox('rates');
+      box.classList.add('active');
+      box.innerText = 'Загрузка курсы...';
+      try {
+        const r = await fetch('/api/multitool/rates', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+        const d = await r.json();
+        if (!d.ok) { box.innerText = 'Ошибка: ' + (d.error || r.status); return; }
+        box.innerHTML = '<b>Курсы (база 1 USD):</b><br>' +
+          d.currencies.map(c => `${escapeHtml(c.code)}: <b>${c.per_usd}</b>`).join(' · ');
+      } catch(e) { box.innerText = 'Сбой связи: ' + e.message; }
+    }
+
+    async function convertCurrency() {
+      haptic('light');
+      const amount = parseFloat((document.getElementById('curAmount').value || '0').replace(',', '.'));
+      const from = (document.getElementById('curFrom').value || '').trim();
+      const to = (document.getElementById('curTo').value || '').trim();
+      if (!amount || !from || !to) return showToast('Заполните сумму и валюты');
+      const box = toolBox('rates');
+      box.classList.add('active');
+      box.innerText = 'Конвертация...';
+      try {
+        const r = await fetch('/api/multitool/convert-currency', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount: amount, from_cur: from, to_cur: to })
+        });
+        const d = await r.json();
+        if (!d.ok) { box.innerText = 'Ошибка: ' + (d.error || r.status); return; }
+        box.innerHTML = `<b>${d.amount} ${escapeHtml(d.from)} = ${d.result} ${escapeHtml(d.to)}</b><br>Курс: 1 ${escapeHtml(d.from)} = ${d.rate} ${escapeHtml(d.to)}`;
+        showToast('Готово!');
+      } catch(e) { box.innerText = 'Сбой связи: ' + e.message; }
+    }
+
+    async function checkPassword() {
+      haptic('medium');
+      const pw = document.getElementById('pwCheckInput').value || '';
+      if (pw.length < 4) return showToast('Минимум 4 символа');
+      const box = toolBox('pwCheck');
+      box.classList.add('active');
+      box.innerText = 'Проверка по базе утечек...';
+      try {
+        const r = await fetch('/api/multitool/check-password', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+        const d = await r.json();
+        if (!d.ok) { box.innerText = 'Ошибка: ' + (d.error || r.status); return; }
+        box.innerHTML = d.pwned
+          ? `<b style="color:var(--danger)">🚨 Пароль найден в ${d.breaches} утечках — замените его!</b><br>📏 Длина: ${d.length} · Энтропия: ${d.entropy_bits} бит`
+          : `<b style="color:var(--success)">✅ Пароль не найден в известных утечках.</b><br>📏 Длина: ${d.length} · Энтропия: ${d.entropy_bits} бит`;
+        document.getElementById('pwCheckInput').value = '';
+      } catch(e) { box.innerText = 'Сбой связи: ' + e.message; }
+    }
+
+    async function shortenUrl() {
+      haptic('light');
+      const url = (document.getElementById('shortenInput').value || '').trim();
+      if (!url) return showToast('Вставьте ссылку');
+      const box = toolBox('shorten');
+      box.classList.add('active');
+      box.innerText = 'Сокращение...';
+      try {
+        const r = await fetch('/api/multitool/shorten', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const d = await r.json();
+        if (!d.ok) { box.innerText = 'Ошибка: ' + (d.error || r.status); return; }
+        box.innerHTML = `Короткая ссылка: <b style="word-break:break-all;">${escapeHtml(d.short_url)}</b>`;
+        showToast('Ссылка сокращена!');
+      } catch(e) { box.innerText = 'Сбой связи: ' + e.message; }
+    }
+
+    async function convertUnit() {
+      haptic('light');
+      const value = parseFloat((document.getElementById('ucValue').value || '0').replace(',', '.'));
+      const from = (document.getElementById('ucFrom').value || '').trim();
+      const to = (document.getElementById('ucTo').value || '').trim();
+      if (isNaN(value) || !from || !to) return showToast('Заполните значения');
+      const box = toolBox('uc');
+      box.classList.add('active');
+      try {
+        const r = await fetch('/api/multitool/convert-unit', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value: value, from_unit: from, to_unit: to })
+        });
+        const d = await r.json();
+        if (!d.ok) { box.innerText = 'Ошибка: ' + (d.error || r.status); return; }
+        box.innerHTML = `<b>${d.value} ${escapeHtml(d.from)} = ${d.result} ${escapeHtml(d.to)}</b>`;
+      } catch(e) { box.innerText = 'Сбой связи: ' + e.message; }
+    }
+
+    async function genWifiQr() {
+      haptic('medium');
+      const ssid = (document.getElementById('wifiSsid').value || '').trim();
+      const pass = document.getElementById('wifiPass').value || '';
+      const open = document.getElementById('wifiOpen').checked;
+      if (!ssid) return showToast('Укажите имя сети');
+      try {
+        const r = await fetch('/api/multitool/wifi-qr', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ssid: ssid, password: open ? '' : pass, encryption: open ? 'nopass' : 'WPA' })
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); showToast('Ошибка: ' + (d.error || r.status)); return; }
+        const blob = await r.blob();
+        document.getElementById('wifiQrImg').src = URL.createObjectURL(blob);
+        document.getElementById('wifiQrResult').style.display = 'block';
+        showToast('Wi-Fi QR создан!');
+      } catch(e) { showToast('Сбой связи: ' + e.message); }
+    }
+
+    async function compressImage(quality) {
+      haptic('medium');
+      const input = document.getElementById('compressFile');
+      if (!input.files || !input.files[0]) return showToast('Выберите изображение');
+      const file = input.files[0];
+      const box = toolBox('compress');
+      box.classList.add('active');
+      box.innerText = 'Сжатие изображения...';
+      const fd = new FormData();
+      fd.append('file', file);
+      try {
+        const r = await fetch('/api/multitool/compress?quality=' + (quality || 78), {
+          method: 'POST', body: fd
+        });
+        if (!r.ok) { const d = await r.json().catch(() => ({})); box.innerText = 'Ошибка: ' + (d.error || r.status); return; }
+        const saved = r.headers.get('X-Saved-Pct');
+        const dims = r.headers.get('X-Dimensions');
+        const orig = Math.round(parseInt(r.headers.get('X-Original-Size') || '0') / 1024);
+        const nw = Math.round(parseInt(r.headers.get('X-New-Size') || '0') / 1024);
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        box.innerHTML = `<b>Готово! Сэкономлено ${saved}%</b><br>${orig} КБ → ${nw} КБ · ${dims}<br><br>`
+          + `<a class="btn btn-primary btn-sm" href="${url}" download="compressed.jpg"><i class="fa-solid fa-download"></i> Скачать</a> `
+          + `<img src="${url}" style="max-width:100%; border-radius:8px; margin-top:10px;">`;
+        showToast('Фото сжато!');
+      } catch(e) { box.innerText = 'Сбой связи: ' + e.message; }
     }
 
     // --- 3. AI SUMMARY ---
@@ -1284,125 +1547,6 @@
         if (d.ok) { showToast('Готово: ' + action); loadAdminUsers(); loadAdminStats(); }
         else showToast('Ошибка: ' + (d.error || '?'));
       } catch(e) { showToast('Ошибка сети'); }
-    }
-
-    // --- 5. OSINT SEARCH ---
-    const OSINT_PATHS = {
-      username: '/api/scan/username',
-      universal: '/api/scan/universal',
-      phone: '/api/scan/phone',
-      ip: '/api/scan/ip',
-      domain: '/api/scan/domain',
-      email: '/api/scan/email',
-      telegram: '/api/scan/telegram',
-      dorks: '/api/tools/dorks'
-    };
-
-    async function runOsint(kind) {
-      haptic('medium');
-      const input = document.getElementById('osintTarget');
-      const target = (input.value || '').trim();
-      if (!target) return showToast('Введите цель анализа');
-      const loading = document.getElementById('osintLoading');
-      const resBox = document.getElementById('osintResult');
-      const content = document.getElementById('osintResultContent');
-      const title = document.getElementById('osintResultTitle');
-
-      loading.style.display = 'block';
-      resBox.classList.remove('active');
-      title.innerText = 'Анализ: ' + kind;
-      content.innerText = 'Сканирование публичных источников...';
-
-      try {
-        const r = await fetch(OSINT_PATHS[kind], {
-          method: 'POST',
-          headers: getAdminHeaders(),
-          body: JSON.stringify({ target: target })
-        });
-        const d = await r.json();
-        loading.style.display = 'none';
-        if (!d.ok) {
-          content.innerText = 'Ошибка: ' + (d.error || ('HTTP ' + r.status));
-          resBox.classList.add('active');
-          return;
-        }
-        content.innerHTML = renderOsintResult(d);
-        resBox.classList.add('active');
-        showToast('Анализ завершён!');
-        initAccount(); // обновить XP/счётчики в бейдже
-      } catch(e) {
-        loading.style.display = 'none';
-        content.innerText = 'Сбой связи: ' + e.message;
-        resBox.classList.add('active');
-      }
-    }
-
-    function renderOsintResult(d) {
-      const esc = escapeHtml;
-      if (d.found_count !== undefined) {
-        let html = `<b>Найдено профилей: ${d.found_count}</b> из ${d.checked_sites || '?'} сайтов<br><br>`;
-        (d.profiles || []).forEach(p => {
-          html += `• <a href="${esc(p.url)}" target="_blank" rel="noopener" style="color:var(--primary);">${esc(p.site)}</a><br>`;
-        });
-        if (!d.found_count) html += 'Аккаунты не найдены — возможно, ник уникален.';
-        return html;
-      }
-      if (d.carrier !== undefined) {
-        return `<b>Номер:</b> ${esc(d.target)}<br>
-          <b>Страна:</b> ${esc(d.country)} (${esc(d.country_code || '')})<br>
-          <b>Оператор:</b> ${esc(d.carrier)}<br>
-          <b>Регион:</b> ${esc(d.location)}<br>
-          <b>Тип:</b> ${esc(d.line_type)}<br>
-          <b>Формат:</b> <code>${esc(d.formatted_international || '')}</code><br>
-          <i>${esc(d.warning || '')}</i>`;
-      }
-      if (d.root_handle !== undefined) {
-        return `<b>Хэндл:</b> ${esc(d.target)}<br>
-          <b>Корневой:</b> <code>${esc(d.root_handle)}</code><br>
-          <b>Это вариант:</b> ${d.is_variant ? 'да' : 'нет'}<br>
-          <b>Уверенность:</b> ${d.confidence}%<br>
-          ${(d.signals || []).map(s => '• ' + esc(s)).join('<br>')}`;
-      }
-      const data = d.data || {};
-      if (data.ip_addresses) {
-        const http = data.http || {};
-        return `<b>Домен:</b> ${esc(d.target)}<br>
-          <b>IP:</b> <code>${esc((data.ip_addresses || []).join(', '))}</code><br>
-          <b>HTTP:</b> ${http.status_code || 'N/A'} · сервер: ${esc(http.server || 'N/A')}<br>
-          <b>HTTPS:</b> ${http.https ? 'да' : 'нет'} · HSTS: ${http.hsts ? 'да' : 'нет'}`;
-      }
-      if (data.city !== undefined || data.country !== undefined) {
-        return `<b>IP:</b> ${esc(d.target)}<br>
-          <b>Страна:</b> ${esc(data.country || 'N/A')} (${esc(data.country_code || '')})<br>
-          <b>Город:</b> ${esc(data.city || 'N/A')} · ${esc(data.region || '')}<br>
-          <b>Провайдер:</b> ${esc(data.org || 'N/A')}<br>
-          <b>Координаты:</b> ${data.latitude ?? '?'}, ${data.longitude ?? '?'}`;
-      }
-      if (data.mx_records) {
-        return `<b>Email:</b> ${esc(d.target)}<br>
-          <b>Домен:</b> ${esc(data.domain || '')}<br>
-          <b>MX:</b> <code>${esc((data.mx_records || []).join(', ') || 'не найдены')}</code><br>
-          <b>Бесплатный:</b> ${data.is_free_provider ? 'да' : 'нет'} · <b>Временный:</b> ${data.disposable ? 'да' : 'нет'}`;
-      }
-      if (d.dorks) {
-        return d.dorks.map(x => `• <b>${esc(x.title)}</b><br><code>${esc(x.query)}</code>`).join('<br><br>');
-      }
-      if (data.exists !== undefined) {
-        if (!data.exists) return '<b>Аккаунт не найден.</b>';
-        return `<b>Найден:</b> ${esc(d.target)}<br>
-          <b>Имя:</b> ${esc(data.name || data.title || '—')}<br>
-          <b>Описание:</b> ${esc(String(data.bio || data.description || '—')).slice(0, 300)}<br>
-          <b>Профиль:</b> <a href="${esc(data.profile || data.url || '#')}" target="_blank" rel="noopener" style="color:var(--primary);">открыть</a>`;
-      }
-      if (d.report) {
-        let html = `<b>Автодосье: ${esc(d.target)}</b><br>Модули: ${esc((d.modules || []).join(', '))}<br><br>`;
-        Object.entries(d.report).forEach(([k, v]) => {
-          html += `<b>${esc(k)}:</b> ${v.ok ? '✅' : '❌ ' + esc(v.error || '')}<br>`;
-        });
-        html += `<br><i>${esc(d.warning || '')}</i>`;
-        return html;
-      }
-      return '<pre style="white-space:pre-wrap;">' + esc(JSON.stringify(d, null, 2).slice(0, 3000)) + '</pre>';
     }
 
     async function sendBroadcast() {
