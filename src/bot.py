@@ -46,7 +46,7 @@ def is_admin(user_id: int) -> bool:
 
 def get_webapp_url() -> str:
     sep = "&" if "?" in DOMAIN else "?"
-    return f"{DOMAIN}{sep}v=3.0"
+    return f"{DOMAIN}{sep}v=4.0_clean"
 
 
 def get_main_keyboard() -> InlineKeyboardMarkup:
