@@ -529,6 +529,49 @@ body { background: var(--bg); color: var(--text); min-height: 100vh; padding: 12
   <!-- 8. VIEW: ADMIN CENTER (АДМИНКА) -->
   <!-- ========================================================= -->
   <section class="view-page" id="adminView">
+    <!-- 0. ADMIN TELEMETRY & STATS -->
+    <div class="result-card" style="margin-bottom:12px;">
+      <div class="result-header-toolbar">
+        <div class="result-title"><i class="fa-solid fa-server" style="color:var(--primary);"></i> Статус системы & Сервера</div>
+        <button class="btn btn-secondary btn-sm" onclick="loadAdminSystemStats()"><i class="fa-solid fa-rotate"></i></button>
+      </div>
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:8px; margin-top:8px;">
+        <div class="stat-box" style="padding:10px;">
+          <div style="font-size:10px; color:var(--text-muted);">Пользователей</div>
+          <div style="font-size:16px; font-weight:800; color:#fff;" id="admStatUsers">—</div>
+        </div>
+        <div class="stat-box" style="padding:10px;">
+          <div style="font-size:10px; color:var(--text-muted);">VIP Агентов</div>
+          <div style="font-size:16px; font-weight:800; color:var(--amber);" id="admStatVip">—</div>
+        </div>
+        <div class="stat-box" style="padding:10px;">
+          <div style="font-size:10px; color:var(--text-muted);">Всего сканов</div>
+          <div style="font-size:16px; font-weight:800; color:var(--primary);" id="admStatScans">—</div>
+        </div>
+        <div class="stat-box" style="padding:10px;">
+          <div style="font-size:10px; color:var(--text-muted);">Своб. диск</div>
+          <div style="font-size:16px; font-weight:800; color:#10b981;" id="admStatDisk">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 0.1 BROADCAST NOTIFICATIONS -->
+    <div class="result-card" style="margin-bottom:12px;">
+      <div class="result-header-toolbar">
+        <div class="result-title"><i class="fa-solid fa-bullhorn" style="color:var(--primary);"></i> Рассылка уведомлений пользователям</div>
+      </div>
+      <p style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">
+        Отправка сообщения или анонса обновления всем зарегистрированным пользователям бота.
+      </p>
+      <textarea id="admBroadcastText" class="omni-input" rows="3" placeholder="Введите текст рассылки (поддерживается HTML)..." style="width:100%; margin-bottom:8px; resize:vertical;"></textarea>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px;">
+        <input id="admBroadcastBtnText" class="omni-input" placeholder="Текст кнопки (опционально, напр. Открыть)">
+        <input id="admBroadcastBtnUrl" class="omni-input" placeholder="Ссылка кнопки (напр. https://...)">
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="submitAdminBroadcast()"><i class="fa-solid fa-paper-plane"></i> Отправить всем пользователям</button>
+      <div id="admBroadcastStatus" style="font-size:11px; margin-top:6px; color:var(--text-muted);"></div>
+    </div>
+
     <div class="result-card">
       <div class="result-header-toolbar">
         <div class="result-title"><i class="fa-solid fa-users-gear" style="color:var(--amber);"></i> Управление пользователями & Квоты</div>
@@ -2863,6 +2906,7 @@ function handleUserBadgeClick() {
   }).then(r => r.json()).then(d => {
     if (d.ok) {
       currentSessionUser = 'admin';
+      localStorage.setItem('admin_token', role);
       initUserProfile();
       showView('adminView');
       showToast('Авторизован как Администратор');
@@ -2888,9 +2932,67 @@ async function buyStarsPkg(pkgKey) {
   }
 }
 
-async function loadAdminUsers() {
+function getAdminHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (tgUserId) h['X-Telegram-User-Id'] = tgUserId;
+  if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+    h['X-Telegram-Init-Data'] = window.Telegram.WebApp.initData;
+  }
+  const token = localStorage.getItem('admin_token');
+  if (token) h['X-Admin-Token'] = token;
+  return h;
+}
+
+async function loadAdminSystemStats() {
   try {
-    const r = await fetch(API_BASE + '/api/admin/users', { headers: { 'X-Telegram-User-Id': tgUserId || '5233450569' } });
+    const r = await fetch(API_BASE + '/api/admin/stats', { headers: getAdminHeaders() });
+    const js = await r.json();
+    if (js.ok) {
+      const uEl = document.getElementById('admStatUsers');
+      const vEl = document.getElementById('admStatVip');
+      const sEl = document.getElementById('admStatScans');
+      const dEl = document.getElementById('admStatDisk');
+      if (uEl) uEl.innerText = js.total_users || 0;
+      if (vEl) vEl.innerText = js.vip_users || 0;
+      if (sEl) sEl.innerText = js.total_scans || 0;
+      if (dEl) dEl.innerText = `${js.disk_free_gb || 0} ГБ`;
+    }
+  } catch(e) {}
+}
+
+async function submitAdminBroadcast() {
+  const text = (document.getElementById('admBroadcastText').value || '').trim();
+  const btnText = (document.getElementById('admBroadcastBtnText').value || '').trim();
+  const btnUrl = (document.getElementById('admBroadcastBtnUrl').value || '').trim();
+  const statusEl = document.getElementById('admBroadcastStatus');
+
+  if (!text) return alert('Введите текст сообщения для рассылки');
+  if (btnText && !btnUrl) return alert('Если указан текст кнопки, укажите и ссылку');
+
+  statusEl.innerText = 'Отправка рассылки пользователям...';
+  try {
+    const r = await fetch(API_BASE + '/api/admin/broadcast', {
+      method: 'POST',
+      headers: getAdminHeaders(),
+      body: JSON.stringify({ message: text, button_text: btnText || null, button_url: btnUrl || null })
+    });
+    const js = await r.json();
+    if (js.ok) {
+      statusEl.innerHTML = `<span style="color:#10b981;">✓ Успешно отправлено: ${js.sent} из ${js.total} (ошибок: ${js.failed})</span>`;
+      showToast('Рассылка успешно выполнена!');
+      document.getElementById('admBroadcastText').value = '';
+    } else {
+      statusEl.innerHTML = `<span style="color:var(--danger);">Ошибка: ${js.error || 'Сбой рассылки'}</span>`;
+    }
+  } catch(e) {
+    statusEl.innerText = 'Ошибка сети: ' + e.message;
+  }
+}
+
+async function loadAdminUsers() {
+  loadAdminSystemStats();
+  try {
+    const r = await fetch(API_BASE + '/api/admin/users', { headers: getAdminHeaders() });
     const js = await r.json();
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = '';

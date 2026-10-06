@@ -19,6 +19,8 @@ from aiogram.types import (
     WebAppInfo,
     FSInputFile,
     BufferedInputFile,
+    MenuButtonWebApp,
+    BotCommand,
 )
 from dotenv import load_dotenv
 from multitool import MediaDownloader, TempMailService, DevSecurityTools, AIProductivity
@@ -608,11 +610,11 @@ async def handle_photo_message(message: types.Message):
 # --- МУЛЬТИТУЛ: СКАЧИВАНИЕ МЕДИА (TIKTOK, REELS, YOUTUBE) ---
 
 async def handle_media_download(message: types.Message, url: str):
-    status_msg = await message.answer("⏳ <i>Подключаюсь к медиасерверу и скачиваю без водяных знаков...</i>", parse_mode="HTML")
+    status_msg = await message.answer("⏳ <i>Подключаюсь к источнику и скачиваю без водяных знаков...</i>", parse_mode="HTML")
     try:
         res = await MediaDownloader.download_media(url)
         if not res.get("ok"):
-            await status_msg.edit_text(f"❌ <b>Ошибка скачивания:</b> {html.escape(res.get('error', 'Не удалось скачать видео'))}", parse_mode="HTML")
+            await status_msg.edit_text(f"❌ <b>Ошибка скачивания:</b> {html.escape(res.get('error', 'Не удалось скачать медиа'))}", parse_mode="HTML")
             return
 
         filepath = res.get("filepath")
@@ -622,20 +624,51 @@ async def handle_media_download(message: types.Message, url: str):
 
         title = res.get("title", "Медиафайл")
         uploader = res.get("uploader", "Неизвестный автор")
+        filesize = os.path.getsize(filepath)
+        fmt = res.get("format", "video/mp4")
         caption = f"🎬 <b>{html.escape(title[:70])}</b>\n👤 <i>{html.escape(uploader)}</i>\n⚡ <i>Скачано через Cyber Multitool</i>"
 
-        video_file = FSInputFile(filepath)
-        await status_msg.delete()
-        await message.answer_video(video=video_file, caption=caption, parse_mode="HTML")
+        # Telegram Bot API лимит на отправку файлов — 50 МБ
+        if filesize > 49 * 1024 * 1024:
+            clean_url = f"{DOMAIN}/api/multitool/file?p={urllib.parse.quote(filepath)}" if DOMAIN else ""
+            mb = round(filesize / (1024 * 1024), 1)
+            kb = InlineKeyboardMarkup(
+                inline_keyboard=[[InlineKeyboardButton(text="📥 Скачать файл на устройство", url=clean_url)]]
+            ) if clean_url else None
 
-        # Удаление временного файла после успешной отправки
+            await status_msg.edit_text(
+                f"⚠️ <b>Файл слишком большой ({mb} МБ)</b>\n"
+                f"Telegram ограничивает прямую отправку ботами до 50 МБ.\n\n"
+                f"🎬 <b>{html.escape(title[:70])}</b>\n"
+                f"Вы можете скачать файл напрямую по ссылке ниже:",
+                reply_markup=kb,
+                parse_mode="HTML"
+            )
+            return
+
+        media_input = FSInputFile(filepath)
+        await status_msg.delete()
+
+        if "audio" in fmt or filepath.lower().endswith((".mp3", ".m4a", ".wav")):
+            await message.answer_audio(audio=media_input, caption=caption, parse_mode="HTML")
+        else:
+            try:
+                await message.answer_video(video=media_input, caption=caption, parse_mode="HTML")
+            except Exception:
+                # Fallback к документу, если видеокодек нестандартный
+                await message.answer_document(document=media_input, caption=caption, parse_mode="HTML")
+
+        # Удаление временного файла после отправки
         try:
             os.remove(filepath)
         except Exception:
             pass
 
     except Exception as e:
-        await status_msg.edit_text(f"❌ <b>Сбой загрузки:</b> {html.escape(str(e))}", parse_mode="HTML")
+        try:
+            await status_msg.edit_text(f"❌ <b>Сбой загрузки:</b> {html.escape(str(e))}", parse_mode="HTML")
+        except Exception:
+            pass
 
 
 @dp.message(Command("dl"))
@@ -1197,7 +1230,28 @@ if hasattr(sys.stdout, "reconfigure"):
 
 async def main():
     logging.basicConfig(level=logging.INFO)
-    logging.info("Telegram Bot started in Terminal Console OSINT mode...")
+    logging.info("Telegram Bot started in Cyber Multitool PRO mode...")
+    try:
+        if DOMAIN:
+            await bot.set_chat_menu_button(
+                menu_button=MenuButtonWebApp(
+                    text="⚡ Мультитул",
+                    web_app=WebAppInfo(url=get_webapp_url())
+                )
+            )
+        await bot.set_my_commands([
+            BotCommand(command="start", description="📱 Открыть Мультитул"),
+            BotCommand(command="dl", description="📥 Скачать видео/аудио из соцсетей"),
+            BotCommand(command="mail", description="📬 Временная одноразовая почта"),
+            BotCommand(command="pass", description="🔐 Генератор надежных паролей"),
+            BotCommand(command="web", description="🌐 Анализ сайта и SSL сертификата"),
+            BotCommand(command="qr", description="📷 Генератор QR-кода"),
+            BotCommand(command="summary", description="📑 AI выжимка статьи/текста"),
+            BotCommand(command="help", description="ℹ️ Список всех возможностей"),
+        ])
+    except Exception as e:
+        logging.warning(f"Failed to set bot menu button or commands: {e}")
+
     await dp.start_polling(bot)
 
 

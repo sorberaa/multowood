@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: cyber-multitool-bot
+    env: docker
+    region: frankfurt
+    plan: free
+    branch: main
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: BOT_TOKEN
+        sync: false
+      - key: ADMIN_CHAT_ID
+        sync: false
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: DOMAIN
+        sync: false
+      - key: DATA_DIR
+        value: /tmp/data

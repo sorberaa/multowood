@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, Response
 from PIL import ExifTags, Image
 
 try:
@@ -503,16 +503,50 @@ async def api_auth_login(request: Request):
     return JSONResponse({"ok": False, "error": "Неверный логин или пароль"}, status_code=401)
 
 
+def verify_telegram_init_data(init_data: str) -> Optional[dict]:
+    """Cryptographically verifies Telegram WebApp initData HMAC-SHA256 signature."""
+    if not init_data or not BOT_TOKEN:
+        return None
+    try:
+        import hmac, hashlib
+        parsed = dict(urllib.parse.parse_qsl(init_data))
+        hash_val = parsed.pop("hash", None)
+        if not hash_val:
+            return None
+        data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(parsed.items()))
+        secret_key = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
+        calc_hash = hmac.new(secret_key, data_check_string.encode(), hashlib.sha256).hexdigest()
+        if hmac.compare_digest(calc_hash, hash_val):
+            u_str = parsed.get("user")
+            return json.loads(u_str) if u_str else parsed
+        return None
+    except Exception:
+        return None
+
+
 def is_admin_request(request: Request) -> bool:
-    uid = request.headers.get("x-telegram-user-id", "").strip()
     adm_token = request.headers.get("x-admin-token", "").strip()
     query_token = request.query_params.get("token", "").strip() or request.query_params.get("admin_token", "").strip()
     auth_header = request.headers.get("authorization", "").replace("Bearer ", "").strip()
     
+    # 1. Admin secret token validation
     if ADMIN_TOKEN and (adm_token == ADMIN_TOKEN or query_token == ADMIN_TOKEN or auth_header == ADMIN_TOKEN):
         return True
-    if ADMIN_CHAT_ID and (uid == str(ADMIN_CHAT_ID) or query_token == str(ADMIN_CHAT_ID)):
-        return True
+
+    # 2. Cryptographic Telegram WebApp initData validation
+    init_data = request.headers.get("x-telegram-init-data", "").strip() or request.query_params.get("init_data", "").strip()
+    if init_data:
+        tg_user = verify_telegram_init_data(init_data)
+        if tg_user and ADMIN_CHAT_ID and str(tg_user.get("id")) == str(ADMIN_CHAT_ID):
+            return True
+
+    # 3. Local trusted loopback requests from bot.py
+    client_ip_addr = request.client.host if request.client else ""
+    if client_ip_addr in ("127.0.0.1", "::1", "localhost"):
+        uid = request.headers.get("x-telegram-user-id", "").strip()
+        if ADMIN_CHAT_ID and (uid == str(ADMIN_CHAT_ID) or query_token == str(ADMIN_CHAT_ID)):
+            return True
+
     return False
 
 
@@ -4184,6 +4218,143 @@ async def api_multitool_summarize(req: SummarizeReq):
 async def api_multitool_qr(req: QRReq):
     qr_bytes = DevSecurityTools.generate_qr(req.text)
     return Response(content=qr_bytes, media_type="image/png")
+
+
+@app.get("/api/multitool/file")
+async def api_multitool_file(p: str):
+    """
+    Безопасная отдача скачанного файла с защитой от Path Traversal.
+    """
+    if not p:
+        return JSONResponse({"ok": False, "error": "Параметр файла не указан"}, status_code=400)
+    
+    base_dir = (Path(os.getenv("DATA_DIR", "data")) / "downloads").resolve()
+    base_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        target_path = Path(p).resolve()
+        # Проверяем, что файл внутри папки downloads
+        target_path.relative_to(base_dir)
+    except (ValueError, Exception):
+        return JSONResponse({"ok": False, "error": "Доступ запрещен (Path Traversal Protection)"}, status_code=403)
+
+    if not target_path.exists() or not target_path.is_file():
+        return JSONResponse({"ok": False, "error": "Файл не найден или был удален по тайм-ауту"}, status_code=404)
+
+    ext = target_path.suffix.lower()
+    media_types = {
+        ".mp4": "video/mp4",
+        ".m4a": "audio/mp4",
+        ".mp3": "audio/mpeg",
+        ".webm": "video/webm",
+        ".mov": "video/quicktime",
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+    }
+    media_type = media_types.get(ext, "application/octet-stream")
+
+    return FileResponse(
+        path=str(target_path),
+        filename=target_path.name,
+        media_type=media_type,
+        headers={"Content-Disposition": f'attachment; filename="{target_path.name}"'}
+    )
+
+
+class BroadcastReq(BaseModel):
+    message: str
+    button_text: Optional[str] = None
+    button_url: Optional[str] = None
+
+
+@app.post("/api/admin/broadcast")
+async def api_admin_broadcast(request: Request, req: BroadcastReq):
+    """
+    Рассылка уведомления всем пользователям бота из админ-панели.
+    """
+    if not is_admin_request(request):
+        return JSONResponse({"ok": False, "error": "Доступ запрещен"}, status_code=403)
+    
+    msg_text = req.message.strip()
+    if not msg_text:
+        return JSONResponse({"ok": False, "error": "Текст сообщения не может быть пустым"}, status_code=400)
+
+    users = load_users()
+    target_ids = []
+    for k, v in users.items():
+        tg_id = v.get("tg_id") or (k if str(k).isdigit() else None)
+        if tg_id and str(tg_id).isdigit():
+            target_ids.append(str(tg_id))
+
+    target_ids = list(set(target_ids))
+    success_count = 0
+    fail_count = 0
+
+    if not BOT_TOKEN:
+        return JSONResponse({"ok": False, "error": "BOT_TOKEN не задан"}, status_code=500)
+
+    payload_base = {
+        "text": msg_text,
+        "parse_mode": "HTML",
+    }
+    if req.button_text and req.button_url:
+        payload_base["reply_markup"] = {
+            "inline_keyboard": [[{"text": req.button_text, "url": req.button_url}]]
+        }
+
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        for tid in target_ids:
+            try:
+                body = dict(payload_base)
+                body["chat_id"] = tid
+                r = await client.post(f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage", json=body)
+                if r.status_code == 200:
+                    success_count += 1
+                else:
+                    fail_count += 1
+            except Exception:
+                fail_count += 1
+            await asyncio.sleep(0.04)  # Anti-flood rate limit
+
+    return {
+        "ok": True,
+        "total": len(target_ids),
+        "sent": success_count,
+        "failed": fail_count
+    }
+
+
+@app.get("/api/admin/stats")
+async def api_admin_system_stats(request: Request):
+    """
+    Телеметрия системы и статистика использования для админ-панели.
+    """
+    if not is_admin_request(request):
+        return JSONResponse({"ok": False, "error": "Доступ запрещен"}, status_code=403)
+    
+    users = load_users()
+    total_users = len(users)
+    vip_users = sum(1 for u in users.values() if u.get("is_unlimited") or u.get("role") in ("admin", "vip"))
+    total_scans = sum(u.get("total_scans", 0) for u in users.values())
+    
+    dl_dir = (Path(os.getenv("DATA_DIR", "data")) / "downloads")
+    download_files_count = len(list(dl_dir.glob("*"))) if dl_dir.exists() else 0
+
+    import shutil
+    stat = shutil.disk_usage(".")
+    disk_free_gb = round(stat.free / (1024**3), 2)
+    disk_total_gb = round(stat.total / (1024**3), 2)
+
+    return {
+        "ok": True,
+        "total_users": total_users,
+        "vip_users": vip_users,
+        "total_scans": total_scans,
+        "cached_downloads": download_files_count,
+        "disk_free_gb": disk_free_gb,
+        "disk_total_gb": disk_total_gb,
+    }
+
 
 
 # --- FRONTEND ИНТЕРФЕЙС WEBAPP PRO ---

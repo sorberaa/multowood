@@ -32,4 +32,5 @@ osint_env/
 *.exe
 tools/
 snap/
+MailSniper/
 
