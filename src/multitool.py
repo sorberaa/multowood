@@ -261,67 +261,169 @@ class MediaDownloader:
 
 
 # =====================================================================
-# 2. TEMP MAIL SERVICE (1SECMAIL PUBLIC API INTEGRATION)
+# 2. TEMP MAIL SERVICE (MAIL.TM PUBLIC API — живой сервис)
 # =====================================================================
 
 class TempMailService:
-    API_BASE = "https://www.1secmail.com/api/v1/"
+    API_BASE = "https://api.mail.tm"
+    _UA = {"User-Agent": "Mozilla/5.0 MultiwoodTempMail/3.0"}
+    # локальные сессии: address -> {password, jwt} (файл переживает рестарт)
+    SESSIONS_FILE = Path(os.getenv("DATA_DIR", "data")) / "tempmail_sessions.json"
+
+    # ---------- helpers ----------
+    @classmethod
+    def _load_sessions(cls) -> Dict[str, Any]:
+        try:
+            if cls.SESSIONS_FILE.exists():
+                return json.loads(cls.SESSIONS_FILE.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+        return {}
 
     @classmethod
-    async def create_inbox(cls) -> Dict[str, Any]:
-        """Creates a temporary disposable mailbox."""
+    def _save_sessions(cls, sessions: Dict[str, Any]) -> None:
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.get(f"{cls.API_BASE}?action=genRandomMailbox&count=1")
-                if res.status_code == 200:
-                    emails = res.json()
-                    if emails and isinstance(emails, list):
-                        email = emails[0]
-                        return {
-                            "ok": True,
-                            "email": email,
-                            "token": email,  # 1secmail uses full email as token identifier
-                        }
-            return {"ok": False, "error": "Не удалось сгенерировать адрес почты"}
+            cls.SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+            cls.SESSIONS_FILE.write_text(
+                json.dumps(sessions, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+        except Exception as e:
+            logger.error(f"tempmail sessions save: {e}")
+
+    @classmethod
+    async def _get_jwt(cls, address: str, password: str) -> Optional[str]:
+        try:
+            async with httpx.AsyncClient(timeout=10.0, headers=cls._UA) as client:
+                r = await client.post(
+                    f"{cls.API_BASE}/token",
+                    json={"address": address, "password": password},
+                )
+                if r.status_code in (200, 201):
+                    return r.json().get("token")
+        except Exception as e:
+            logger.error(f"tempmail token: {e}")
+        return None
+
+    # ---------- public API ----------
+    @classmethod
+    async def create_inbox(cls) -> Dict[str, Any]:
+        """Создаёт временный ящик на mail.tm. Возвращает {ok, email, token}."""
+        try:
+            async with httpx.AsyncClient(timeout=12.0, headers=cls._UA) as client:
+                # 1. доступный домен
+                rd = await client.get(f"{cls.API_BASE}/domains")
+                if rd.status_code != 200:
+                    return {"ok": False, "error": "Сервис почты недоступен (domains)"}
+                domains = [d["domain"] for d in rd.json().get("hydra:member", [])
+                           if d.get("isActive", True)]
+                if not domains:
+                    return {"ok": False, "error": "Нет доступных доменов почты"}
+                domain = domains[0]
+
+                # 2. уникальный логин
+                for _ in range(4):
+                    local = f"mw{secrets.token_hex(6)}"
+                    address = f"{local}@{domain}"
+                    password = secrets.token_urlsafe(16)
+                    ra = await client.post(
+                        f"{cls.API_BASE}/accounts",
+                        json={"address": address, "password": password},
+                    )
+                    if ra.status_code in (200, 201):
+                        jwt = await cls._get_jwt(address, password)
+                        if not jwt:
+                            return {"ok": False, "error": "Не удалось активировать ящик"}
+                        sessions = cls._load_sessions()
+                        sessions[address] = {"password": password, "jwt": jwt}
+                        cls._save_sessions(sessions)
+                        return {"ok": True, "email": address, "token": address}
+                    if ra.status_code != 422:
+                        break
+                return {"ok": False, "error": "Не удалось создать ящик (занято)"}
         except Exception as e:
             logger.error(f"TempMail create error: {e}")
-            return {"ok": False, "error": f"Сбой сервиса почты: {str(e)}"}
+            return {"ok": False, "error": f"Сбой сервиса почты: {str(e)[:150]}"}
+
+
+    @classmethod
+    async def _authed_get(cls, address: str, path: str) -> Optional[httpx.Response]:
+        sessions = cls._load_sessions()
+        sess = sessions.get(address)
+        if not sess:
+            return None
+        jwt = sess.get("jwt")
+        headers = dict(cls._UA)
+        if jwt:
+            headers["Authorization"] = f"Bearer {jwt}"
+        async with httpx.AsyncClient(timeout=10.0, headers=headers) as client:
+            r = await client.get(f"{cls.API_BASE}{path}")
+            if r.status_code in (401, 403):
+                # JWT протух — логинимся заново
+                jwt = await cls._get_jwt(address, sess.get("password", ""))
+                if not jwt:
+                    return None
+                sess["jwt"] = jwt
+                sessions[address] = sess
+                cls._save_sessions(sessions)
+                headers["Authorization"] = f"Bearer {jwt}"
+                r = await client.get(f"{cls.API_BASE}{path}")
+            return r
 
     @classmethod
     async def get_messages(cls, token: str) -> Dict[str, Any]:
-        """Fetches inbox message list for given email token."""
+        """token == адрес ящика. Возвращает нормализованный список писем."""
+        address = (token or "").strip().lower()
+        if "@" not in address:
+            return {"ok": False, "error": "Неверный формат токена почты"}
         try:
-            if "@" not in token:
-                return {"ok": False, "error": "Неверный формат токена почты"}
-            login, domain = token.split("@", 1)
-
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.get(f"{cls.API_BASE}?action=getMessages&login={urllib.parse.quote(login)}&domain={urllib.parse.quote(domain)}")
-                if res.status_code == 200:
-                    messages = res.json()
-                    return {"ok": True, "messages": messages if isinstance(messages, list) else []}
-            return {"ok": False, "error": f"Ошибка сервера почты: HTTP {res.status_code}"}
+            r = await cls._authed_get(address, "/messages")
+            if r is None:
+                return {"ok": False, "error": "Ящик не найден (сервер перезапущен — создайте новый)"}
+            if r.status_code != 200:
+                return {"ok": False, "error": f"Ошибка сервера почты: HTTP {r.status_code}"}
+            raw = r.json().get("hydra:member", [])
+            messages = [
+                {
+                    "id": m.get("id"),
+                    "from": (m.get("from") or {}).get("address", "?"),
+                    "subject": m.get("subject") or "(без темы)",
+                    "intro": (m.get("intro") or "")[:200],
+                    "created_at": m.get("createdAt"),
+                }
+                for m in raw
+            ]
+            return {"ok": True, "messages": messages}
         except Exception as e:
-            return {"ok": False, "error": str(e)}
+            return {"ok": False, "error": str(e)[:150]}
 
     @classmethod
     async def get_message_detail(cls, token: str, message_id: str) -> Dict[str, Any]:
-        """Reads detailed message body."""
+        address = (token or "").strip().lower()
+        if "@" not in address:
+            return {"ok": False, "error": "Неверный формат токена почты"}
+        message_id = (message_id or "").strip()
+        if not re.fullmatch(r"[A-Za-z0-9\-]{4,64}", message_id):
+            return {"ok": False, "error": "Неверный ID письма"}
         try:
-            if "@" not in token:
-                return {"ok": False, "error": "Неверный формат токена почты"}
-            login, domain = token.split("@", 1)
-
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                res = await client.get(
-                    f"{cls.API_BASE}?action=readMessage&login={urllib.parse.quote(login)}&domain={urllib.parse.quote(domain)}&id={urllib.parse.quote(str(message_id))}"
-                )
-                if res.status_code == 200:
-                    detail = res.json()
-                    return {"ok": True, "message": detail}
-            return {"ok": False, "error": f"Письмо не найдено: HTTP {res.status_code}"}
+            r = await cls._authed_get(address, f"/messages/{message_id}")
+            if r is None:
+                return {"ok": False, "error": "Ящик не найден"}
+            if r.status_code != 200:
+                return {"ok": False, "error": f"Письмо не найдено: HTTP {r.status_code}"}
+            m = r.json()
+            return {
+                "ok": True,
+                "message": {
+                    "id": m.get("id"),
+                    "from": (m.get("from") or {}).get("address", "?"),
+                    "subject": m.get("subject") or "(без темы)",
+                    "text": m.get("text") or "",
+                    "created_at": m.get("createdAt"),
+                },
+            }
         except Exception as e:
-            return {"ok": False, "error": str(e)}
+            return {"ok": False, "error": str(e)[:150]}
+
 
 
 # =====================================================================

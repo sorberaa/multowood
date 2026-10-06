@@ -5,11 +5,16 @@ echo ========================================================
 echo  CYBER MULTITOOL PRO // @Multiwood_bot LAUNCHER
 echo ========================================================
 echo.
+
+set "ROOT=%~dp0"
+set "PY=%ROOT%.venv\Scripts\python.exe"
+if not exist "%PY%" set "PY=python"
+
 echo [*] Запуск WebApp API на порту 8000...
-start /B "" "d:\osint-bot\.venv\Scripts\python.exe" "d:\osint-bot\src\webapp.py"
+start /B "" "%PY%" "%ROOT%src\webapp.py"
 timeout /t 2 > nul
 
 echo [*] Запуск Telegram Bot @Multiwood_bot...
-"d:\osint-bot\.venv\Scripts\python.exe" "d:\osint-bot\src\bot.py"
+"%PY%" "%ROOT%src\bot.py"
 
 pause

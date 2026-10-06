@@ -1,11 +1,20 @@
+# -*- coding: utf-8 -*-
+"""Интеграционные тесты всех эндпоинтов Multiwood (запуск при живом сервере: python src/webapp.py)."""
 import asyncio
-import json
+import sys
+
+# PowerShell/Windows console может быть в cp1251 — принудительно UTF-8
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 import httpx
 
 LOCAL_API = "http://127.0.0.1:8000"
 
 async def test_all():
-    async with httpx.AsyncClient(base_url=LOCAL_API, timeout=30.0) as client:
+    async with httpx.AsyncClient(base_url=LOCAL_API, timeout=60.0) as client:
         print("=== 1. ТЕСТ: КАТАЛОГ ИНСТРУМЕНТОВ ===")
         r = await client.get("/api/catalog")
         print(f"Status: {r.status_code}, Groups: {len(r.json().get('groups', []))}")
@@ -56,8 +65,24 @@ async def test_all():
         r = await client.post("/api/scan/ip", json={"target": "8.8.8.8", "caller": "ShadowAgent"})
         print(f"IP Recon Status: {r.status_code}, Country: {r.json().get('data', {}).get('country')}")
 
+        print("\n=== 11. ТЕСТ: ДОСТУП (ADMIN STATS) ===")
+        r = await client.get("/api/admin/stats", headers={"X-Telegram-User-Id": "5233450569"})
+        d = r.json()
+        print(f"Stats Status: {r.status_code}, users={d.get('total_users')}, visits={d.get('total_visits')}")
+
+        print("\n=== 12. ТЕСТ: БАН → БЛОК ДОСТУПА ===")
+        r = await client.post("/api/admin/user/action",
+                              json={"tg_id": "11223344", "action": "ban"},
+                              headers={"X-Telegram-User-Id": "5233450569"})
+        print(f"Ban Status: {r.status_code}, banned={r.json().get('user', {}).get('banned')}")
+        r = await client.post("/api/admin/user/action",
+                              json={"tg_id": "11223344", "action": "unban"},
+                              headers={"X-Telegram-User-Id": "5233450569"})
+        print(f"Unban Status: {r.status_code}, banned={r.json().get('user', {}).get('banned')}")
+
         print("\n✅ ВСЕ ТЕСТЫ БЭКЕНДА УСПЕШНО ПРОЙДЕНЫ!")
 
 if __name__ == "__main__":
     asyncio.run(test_all())
+
 

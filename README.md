@@ -1,232 +1,115 @@
-# 🎯 OSINT LAB — Образовательный проект с Docker
+# 🎯 Multiwood — Мультитул + OSINT-бот (образовательный)
 
-Образовательный каталог OSINT-утилит, интерактивные учебные стенды и логирование IP визитов в админ-панель.
+Telegram-бот и FastAPI-бэкенд со **скачиванием медиа без водяных знаков**, мобильными утилитами, **OSINT-модулями** (только публичные данные), **системой аккаунтов** (XP / уровни / роли) и **админ-панелью** (пользователи, визиты, рассылки).
 
-> ⚠️ **Это приложение предназначено ДЛЯ ОБРАЗОВАТЕЛЬНЫХ целей.** Живой запуск утилит против людей БЕЗ СОГЛАСИЯ запрещен.
+> ⚠️ **Образовательный проект.** Живой запуск утилит против людей **без согласия** запрещён. Используйте только публичные данные и соблюдайте закон вашей страны.
 
-## 📦 Что включено?
+## 📦 Возможности
 
-### 🔍 Интегрированные утилиты OSINT
+### 📥 Скачивание медиа (без водяных знаков)
+TikTok, Instagram Reels, YouTube Shorts, X, Pinterest, VK — пришлите ссылку в чат или откройте Mini App. Видео **MP4** или аудио **MP3**.
 
-| Категория | Утилита | Функция |
-|-----------|---------|---------|
-| 👤 **Username** | HandleHawk | Кросс-платформенный поиск по никнейму (Reddit, Mastodon, X, Nostr и т.д.) |
-| 🌍 **IP Tracking** | TraxOsint | Полный анализ IP: геолокация, VPN, открытые порты, создание карт |
-| 📄 **Метаданные** | MetaDetective | Извлечение EXIF, авторов, GPS, дат из документов и веб-скрейпинг |
-| 🌐 **Веб-анализ** | WebCheck-OSINT | Анализ сайтов: SSL, DNS, TLS, технологический стек, угрозы |
-| 📱 **Телефоны** | Ignorant | Проверка номера на Instagram, Snapchat, Amazon БЕЗ алертов |
-| ☎️ **Информация о номере** | PhoneInfoga | Информация о сотовом операторе, стране, утечках |
-| ✉️ **Email-восстановление** | Quidam | Восстановление email через "забытый пароль" на Twitter, Instagram, GitHub |
-| 👥 **Профилирование** | DaProfiler | Сборка личности: адреса, соцсети, контакты (архивирован) |
-| 🗺️ **Картографирование** | OSINT Mapping Tool | Интерактивная карта + граф для организации информации |
-| ✈️ **Telegram** | TelegramDB | Индекс публичных каналов и групп Telegram |
-| 📚 **Справочник** | NotLoBi CheatSheet | Полная шпаргалка OSINT по всем инструментам |
+### 🛠 Мобильные утилиты
+Временная почта (живой **mail.tm**), генератор паролей (энтропия в битах), QR-коды, очистка ссылок от трекеров, AI-выжимка статей.
 
-### 🧪 Учебные стенды
+### 🔍 OSINT-модули (учебные, публичные данные)
+| Модуль | Что делает |
+|---|---|
+| `/username` | Поиск аккаунта на 60+ сайтах (база Sherlock, реальные HTTP-проверки) |
+| `/phone` | Оператор, регион, тип номера (phonenumbers, офлайн) |
+| `/ip` | Страна, город, провайдер, координаты (резервные публичные API) |
+| `/domain` | DNS (IP), HTTP/HTTPS/HSTS-проба |
+| `/email` | MX-записи, бесплатные/временные провайдеры |
+| Telegram / GitHub | Публичные профили t.me и api.github.com |
+| `/dorks` | Генератор учебных Google-dorks |
+| Автодосье | Автодетект цели → комбинация модулей |
+| Атрибуция | Детектор «корневого» хэндла (виртуальные аккаунты) |
 
-- **SQL Injection Lab**: Boolean-based, UNION-based, Time-based, OOB симуляции на локальных данных
-- **IP Logging**: Логирование IP, браузера, геолокации всех визитов в панель
+### 🎮 Система аккаунтов
+- Профиль: ник, роль (`user` / `vip` / `admin`), уровень и XP-прогресс
+- Ежедневный бонус `/daily` с серией дней 🔥
+- Таблица лидеров `/top`
+- Счётчики: скачивания, почта, сканы
+- Бан действует **и в боте, и в вебе**; админа забанить нельзя
 
-### 🔐 Админ-панель
-
-- **Dashboard**: Статистика визитов (всего, уникальные IP, страны)
-- **Таблица логов**: IP → Время → Страна → Path → User-Agent
-- **JSON API**: `/admin/visits?token=ADMIN_TOKEN&limit=50`
-- **HTML интерфейс**: `/admin/visits-html?token=ADMIN_TOKEN`
+### 🛡 Админ-панель (веб + команды бота)
+- **Статистика**: пользователи, активные сегодня, скачивания/сканы, визиты, баны/VIP, диск
+- **Пользователи**: таблица, бан/разбан и VIP одним кликом
+- **Журнал IP-визитов**: IP, страна, путь, User-Agent (+ `/admin/visits-html?token=...`)
+- **Рассылка** с автоматическим HTML-фоллбэком
+- Команды бота: `/admin`, `/visits`, `/users`, `/bc текст`, `/ban id`, `/unban id`
 
 ## 🚀 Быстрый старт
 
-### Локально
+### Windows (локально)
+```bat
+run_bot.bat
+```
 
+### Docker
 ```bash
-# 1. Клонировать
-git clone https://github.com/sorberaa/osint-bot.git
-cd osint-bot
-
-# 2. Подготовить конфиг
-cp config/.env.example config/.env
-# Отредактировать config/.env:
-#   BOT_TOKEN=...          (от @BotFather)
-#   ADMIN_CHAT_ID=...      (твой ID, узнаёшь от бота /id)
-#   ADMIN_TOKEN=...        (для админ-панели)
-#   DOMAIN=...             (твой домен или IP)
-
-# 3. Запустить
+cp config/.env.example config/.env   # заполнить BOT_TOKEN, ADMIN_CHAT_ID, ADMIN_TOKEN, DOMAIN
 mkdir -p data
 docker compose up -d --build
-
-# 4. Открыть в браузере
 # http://localhost:8000
 ```
 
-### На сервере с Cloudflare Tunnel
+## ⚙️ Конфигурация (config/.env)
+```env
+BOT_TOKEN=123456789:ABC...        # от @BotFather
+ADMIN_CHAT_ID=987654321           # ваш Telegram ID
+ADMIN_TOKEN=long_random_token     # доступ к /admin/visits-html
+DOMAIN=https://your-domain.com    # HTTPS обязателен для WebApp
+DATA_DIR=/app/data                # папка данных (users.json, visitors.json)
+```
+
+## 📖 Команды бота
+
+| Команда | Описание |
+|---|---|
+| `/start` `/help` | Меню и инструкция |
+| `/dl <ссылка>` | Скачать видео/аудио (или просто пришлите ссылку) |
+| `/profile` `/nick` | Профиль и смена ника |
+| `/daily` `/top` | Бонус XP и таблица лидеров |
+| `/username` `/phone` `/ip` `/domain` `/dorks` | OSINT-модули |
+| `/mail` `/pass` `/qr` `/clean` `/hash` `/sum` | Утилиты |
+| `/admin` `/visits` `/users` `/bc` `/ban` `/unban` | Админ-инструменты |
+
+## 🧪 Тесты и аудит
 
 ```bash
-# В config/.env добавить:
-CF_TUNNEL_TOKEN=ey...
-
-docker compose up -d --build
-
-# Бот доступен через WebApp
+python src/webapp.py               # 1) запустить сервер
+python scripts/test_all_endpoints.py   # 2) 12 интеграционных тестов
+python scripts/audit_all_modules.py    # аудит 19 модулей
+python scripts/debug_osint.py          # диагностика OSINT-движка
 ```
 
-## 🔧 Конфигурация
-
-### Переменные окружения (config/.env)
-
-```bash
-# Telegram Bot
-BOT_TOKEN=123456789:ABCdeFg...           # От @BotFather
-ADMIN_CHAT_ID=987654321                  # Твой Telegram ID
-ADMIN_TOKEN=super_secret_panel_token     # Для админ-панели
-DOMAIN=https://osint.example.com         # Домен (https, без /)
-
-# Хранилище
-DATA_DIR=/app/data                       # Папка логов
-
-# Cloudflare (опционально)
-CF_TUNNEL_TOKEN=ey...
+## 📂 Структура проекта
 ```
-
-## 📊 Админ-панель логирования
-
-### Просмотр визитов
-
-1. **Через бота** (быстро):
-   ```
-   /visits     # Последние 15 визитов в Telegram
-   ```
-
-2. **Через веб-интерфейс** (красиво):
-   ```
-   https://твой-домен.com/admin/visits-html?token=ADMIN_TOKEN
-   ```
-
-3. **JSON API**:
-   ```
-   GET /admin/visits?token=ADMIN_TOKEN&limit=100
-   ```
-
-### Логируется
-
-- ✅ IP адрес (с поддержкой Cloudflare CF-Connecting-IP)
-- ✅ User-Agent (браузер, ОС)
-- ✅ Страна (Cloudflare CF-IPCountry)
-- ✅ Дата/время (ISO 8601)
-- ✅ Путь (page URL)
-- ✅ Отправление уведомления в Telegram админу
-
-## 📝 Структура проекта
-
-```
-osint-bot/
-├── Dockerfile              # Python 3.12
-├── docker-compose.yml      # Bot + Cloudflare Tunnel
-├── entrypoint.sh          # Запуск приложения
-├── requirements.txt       # Python зависимости
-├── config/
-│   └── .env.example       # Шаблон конфигурации
-├── data/                  # Логи визитов (git ignore)
+multowood/
 ├── src/
-│   ├── bot.py             # Telegram bot
-│   ├── webapp.py          # FastAPI приложение + админ-панель
-│   ├── catalog.py         # Каталог OSINT-утилит
-│   └── entrypoint.sh      # Запуск скрипта
-└── README.md
+│   ├── bot.py          # Telegram-бот (aiogram 3)
+│   ├── webapp.py       # FastAPI-бэкенд + админ-API
+│   ├── accounts.py     # система аккаунтов (роли, XP, баны)
+│   ├── osint.py        # OSINT-движок
+│   ├── multitool.py    # медиа, почта, утилиты
+│   └── catalog.py      # каталог утилит
+├── index.html          # Mini App (SPA)
+├── data/               # users.json, visitors.json, sherlock-базы
+├── scripts/            # тесты и аудит
+├── config/.env.example
+├── Dockerfile · docker-compose.yml · entrypoint.sh
+└── run_bot.bat         # локальный запуск Windows
 ```
 
-## 🛡️ Безопасность
-
-- 🔒 `config/.env` не попадает в Git (`.gitignore`)
-- 🔒 `data/` логи не пушатся
-- 🔒 Админ-панель защищена `ADMIN_TOKEN`
-- 🔒 Живой запуск утилит против людей отключен
-- 🔒 Только HTTPS домены (требование Telegram WebApp)
-
-## 🚀 Деплой
-
-### На VPS через Cloudflare Tunnel
-
-```bash
-# 1. Получить токен на https://dash.cloudflare.com/
-# 2. Вставить в config/.env
-CF_TUNNEL_TOKEN=ey...
-
-# 3. Запустить
-docker compose up -d --build
-
-# 4. Настроить Cloudflare Dashboard
-# - CNAME: бот-домен → tunnel-uuid.cfargotunnels.com
-```
-
-### На GitHub Pages + Vercel (без запуска)
-
-Только читай каталог — живого запуска нет.
-
-## 📚 Примеры использования
-
-### Просмотр каталога утилит
-
-1. Откройте Telegram бота
-2. Нажмите кнопку "Открыть OSINT Lab"
-3. Выберите категорию (Username, IP, Email и т.д.)
-4. Прочитайте описание утилиты и ссылку на GitHub
-
-### SQL Injection Lab
-
-```bash
-curl -X POST http://localhost:8000/api/lab/sqli \
-  -H "Content-Type: application/json" \
-  -d '{"payload": "'\'' or '\''1'\''='\'1"}'
-```
-
-Ответ:
-```json
-{
-  "tech": "Boolean-based SQLi",
-  "explain": "Условие 1=1 всегда истинно. Учебная база вернула все строки.",
-  "rows": [...]
-}
-```
-
-### Проверка визитов
-
-```bash
-curl https://osint.example.com/admin/visits?token=ТВОЙ_ADMIN_TOKEN
-```
-
-## 📖 Документация утилит
-
-- [HandleHawk](https://github.com/C3n7ral051nt4g3ncy/HandleHawk) — Username OSINT
-- [TraxOsint](https://github.com/N0rz3/TraxOsint) — IP Geolocation  
-- [MetaDetective](https://github.com/franckferman/MetaDetective) — Metadata extraction
-- [WebCheck](https://github.com/mwakidenis/WebCheck-OSINT) — Website analysis
-- [Ignorant](https://github.com/megadose/ignorant) — Phone number OSINT
-- [Quidam](https://github.com/megadose/Quidam) — Email recovery
-- [OSINT Mapping Tool](https://github.com/anonymousRAID/OSINT-Mapping-Tool) — Visual research
+## 🛡 Безопасность
+- Проверка Telegram WebApp initData (HMAC-SHA256)
+- Анти-SSRF и валидация входных данных в сканерах
+- `config/.env` и `data/*` не попадают в Git
+- Роль admin назначается **только** по `ADMIN_CHAT_ID` — через API её не получить
 
 ## ⚖️ Правовая информация
-
-**Это приложение создано в образовательных целях.**
-
-- ✋ Не использовать для шпионажа, преследования или хакинга
-- ✋ Уважайте приватность людей
-- ✋ Используйте только с согласия целевого человека
-- ✋ Соблюдайте закон вашей страны
-
-## 🤝 Контриб
-
-Приветствуются:
-- 🔧 Баг-репорты и фиксы
-- 📚 Новые утилиты в каталог
-- 📖 Улучшение документации
-- 🎨 UI/UX улучшения
+Образовательный проект. Не используйте для шпионажа, преследования или хакинга. Уважайте приватность людей и соблюдайте закон.
 
 ## 📄 Лицензия
-
-MIT License — смотри [LICENSE](./LICENSE)
-
----
-
-**Made with ❤️ for educational OSINT learning**
-```
+MIT License
